@@ -1,0 +1,27 @@
+<configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:browser="http://namespaces.zope.org/browser"
+           xmlns:five="http://namespaces.zope.org/five">
+
+  <five:registerPackage
+      package="eea.userseditor"
+      initialize="eea.userseditor.initialize"
+      />
+
+  <browser:resourceDirectory
+      name="eea.userseditor-www"
+      directory="www"
+      />
+
+  <browser:resource
+      name="jquery-ui.min.js"
+      file="www/jquery-ui-1.9.2.min.js"
+      />
+
+  <browser:resource
+      name="jquery.min.js"
+      file="www/jquery-1.7.1.min.js"
+      />
+
+  <include package=".views" />
+
+</configure>

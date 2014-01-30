@@ -1,0 +1,25 @@
+<tal:block content="structure here/manage_page_header" />
+
+<style>
+    form.add-userdetails label {
+        display: inline-block;
+        width: 10em;
+    }
+</style>
+
+<h2>Add Eionet User Details page</h2>
+
+<form action="manage_add_userdetails" method="post"
+      name="add-userdetails" class="add-userdetails">
+    <label for="edit-id">id</label>
+    <input name="id" id="edit-id" />
+    <br />
+
+    <label for="edit-title">Title</label>
+    <input name="title" id="edit-title" />
+    <br />
+
+    <input type="submit" />
+</form>
+
+<tal:block content="structure here/manage_page_footer" />

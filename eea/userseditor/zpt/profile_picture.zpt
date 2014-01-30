@@ -1,0 +1,56 @@
+<h1 class="account-h1">
+    <span tal:replace="options/network_name"></span> account
+    <img src="/++resource++eea.userseditor-www/next.png" class="image12" alt=""
+         title="Subsection" />
+    Profile Picture
+</h1>
+
+<div class="account-links">
+    <a tal:attributes="href string:${options/base_url}/" class="button"
+       title="Back to account information">
+        <img src="/++resource++eea.userseditor-www/back.png" class="middle-image image12"
+             alt="" title="Back to account information" />
+        Back to account information
+    </a>
+    &nbsp;
+    <a class="button"
+       tal:attributes="href string:${options/base_url}/edit_account_html"
+       title="Edit account settigns">
+        <img src="/++resource++eea.userseditor-www/settings.png"
+             class="middle-image image12" alt="" title="Edit account settings" />
+        Account settings
+    </a>
+    &nbsp;
+    <a tal:attributes="href string:${options/base_url}/change_password_html"
+       class="button" title="Change your account password">
+        <img src="/++resource++eea.userseditor-www/lock.png" class="middle-image image12"
+             alt="" title="Edit account settings" />
+        Change password
+    </a>
+</div>
+
+<div class="error-msg"
+     tal:condition="python:options.get('error', False)"
+     tal:content="options/error" />
+<div class="system-msg"
+     tal:condition="python:options.get('message', False)"
+     tal:content="options/message" />
+
+<tal:block condition="options/has_current_image">
+<h2 tal:content="string:Current Picture for ${options/user_id}" />
+<div class="profile_picture">
+    <img tal:attributes="src string:${options/base_url}/profile_picture_jpg" />
+    <a class="close" tal:attributes="href string:${options/base_url}/remove_picture"
+    title="Remove current picture">
+        <img src="/++resource++eea.userseditor-www/close.png" />
+    </a>
+</div>
+</tal:block>
+
+<form action="profile_picture" method="post" enctype="multipart/form-data">
+    <h2>Upload New Picture</h2>
+    <input type="file" name="image_file" id="image_file" />
+    <br />
+    <input type="submit" value="Update" name="submit"
+             class="primary-button" />
+</form>

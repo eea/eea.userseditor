@@ -1,0 +1,22 @@
+<tal:block replace="structure here/manage_page_header" />
+
+<h1>Add EionetLDAP account tools</h1>
+
+<form action="manage_addUsersEditor" method="post">
+    <label for="id">Id:</label>
+    <input id="id" type="text" name="id" size="50" value="profile"/>
+    <br/>
+
+    <label for="title">Title:</label>
+    <input id="title" type="text" name="title" size="50" value="Profile"/>
+    <br/>
+
+    <label for="ldap_server">LDAP server:</label>
+    <input id="ldap_server" type="text" name="ldap_server" size="50"
+           value="ldap2.eionet.europa.eu"/>
+    <br/>
+
+    <input type="submit" value="Add" />
+</form>
+
+<tal:block replace="structure here/manage_page_footer" />

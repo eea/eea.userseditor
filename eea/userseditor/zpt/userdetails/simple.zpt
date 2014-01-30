@@ -1,0 +1,101 @@
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" media="screen"
+            href="/styles/eionet2007/screen.css" />
+        <link rel="stylesheet" type="text/css" media="screen"
+            href="/++resource++eea.userseditor-www/style.css" />
+    </head>
+    <body>
+        <div id="content" tal:define="user options/user;
+                                      disabled user/status;
+                                      is_manager common/is_manager;
+                                      is_authenticated common/is_authenticated;">
+            <h1 tal:content="user/full_name"></h1>
+
+            <table class="datatable">
+                <tr tal:condition="python:not disabled or is_manager">
+                    <th scope="row" class="scope-row">Title</th>
+                    <tal:block condition="user/job_title">
+                        <td tal:content="python: user.get('job_title')" />
+                    </tal:block>
+                    <tal:block condition="not: user/job_title">
+                        <td><em>No title</em></td>
+                    </tal:block>
+                </tr>
+                <tr><th scope="row" class="scope-row">Given name</th>
+                    <td tal:content="user/first_name" /></tr>
+                <tr><th scope="row" class="scope-row">Surname</th>
+                    <td tal:content="user/last_name" /></tr>
+                <tal:block condition="python:not disabled and is_authenticated or is_manager">
+                    <tr tal:condition="disabled">
+                      <td colspan="2"><em>Available to Managers only</em></td>
+                    </tr>
+                    <tr><th scope="row" class="scope-row">Mail</th>
+                        <td tal:content="user/email" /></tr>
+                    <tr><th scope="row" class="scope-row">Telephone</th>
+                        <td tal:content="user/phone" /></tr>
+                    <tr><th scope="row" class="scope-row">Mobile phone</th>
+                        <td tal:content="user/mobile" /></tr>
+                    <tr><th scope="row" class="scope-row">Fax</th>
+                        <td tal:content="user/fax" /></tr>
+                    <tr><th scope="row" class="scope-row">Postal</th>
+                        <td tal:content="user/postal_address" /></tr>
+                </tal:block>
+                <tr><th scope="row" class="scope-row">Userid</th>
+                    <td tal:content="user/uid" /></tr>
+                <tal:block condition="user/certificate">
+                    <tr><th scope="row" class="scope-row">Authentication</th>
+                        <td>
+                            <a tal:attributes="href string:${common/base_url}/usercertificate?uid=${user/uid}">PKI Certificate</a>
+                        </td>
+                    </tr>
+                </tal:block>
+
+                <tal:block condition="is_manager">
+                    <tr tal:condition="not: disabled">
+                        <td colspan="2"><em>Available to Managers only</em></td>
+                    </tr>
+                    <tr><th scope="row" class="scope-row">Created</th>
+                        <td tal:content="user/createTimestamp" /></tr>
+                    <tr><th scope="row" class="scope-row">Modified</th>
+                        <td tal:content="user/modifyTimestamp" /></tr>
+                </tal:block>
+            </table>
+
+            <tal:block condition="not: disabled">
+                <h2>Member of Groups - Eionet Directory Roles</h2>
+                <tal:block condition="options/roles">
+
+                    <table class="account-datatable sub-roles">
+                        <thead>
+                            <tr>
+                                <td>Role ID</td>
+                                <td>Role name</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tal:block repeat="role options/roles">
+                                <tr tal:attributes="class python:('even', 'odd')[int(path('repeat/role/odd'))]">
+                                    <td tal:content="python: role[0]" nowrap="nowrap" />
+                                    <td tal:content="python: role[1]" />
+                                </tr>
+                            </tal:block>
+                        </tbody>
+                    </table>
+                </tal:block>
+
+                <tal:block condition="not: options/roles">
+                    <p>This member does not belong to any Roles.</p>
+                </tal:block>
+
+                <div tal:condition="user/jpegPhoto">
+                    <div>
+                      <a tal:attributes="href string:userphoto_jpeg?uid=${user/uid}">
+                        <img tal:attributes="src string:${common/base_url}/userphoto_jpeg?uid=${user/uid}" class="mouseclickpop"
+                         alt="photo of person" style="max-width:200px; max-height:150px"/></a>
+                    </div>
+                </div>
+            </tal:block>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,452 @@
+.middle-image {
+	vertical-align: middle;
+	margin-top: -4px;
+}
+
+.left-position {
+	float: left;
+}
+
+.right-position {
+	float: right;
+}
+
+.image12 {
+	height: 12px;
+}
+
+.image16 {
+	height: 16px;
+}
+
+.image24 {
+	height: 24px;
+}
+
+.image32 {
+	height: 32px;
+}
+
+.image48 {
+	height: 48px;
+}
+
+h1.account-h1 {
+	/*font-size: 1.1em !important;*/
+}
+
+a.account-link {
+	font-size: 1em;
+	text-decoration: none;
+	color: #00446A;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:visited {
+	color: #058A93;
+}
+
+a.button {
+	font-size: 11px;
+	background-color: #F2F2F2 !important;
+	border: 1px solid #BBBBBB !important;
+	color: #333333 !important;
+	padding: 5px !important;
+	text-decoration: none !important;
+	display: inline !important;
+	/* Mozilla: */
+	background: -moz-linear-gradient(top, #F7F7F7, #E4E5E5);
+	-moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+	/* Chrome, Safari:*/
+	background: -webkit-gradient(linear,
+		left top, left bottom, from(#F7F7F7), to(#E4E5E5));
+	-webkit-box-shadow: 0px 1px 0px #000;
+	/* MSIE */
+	filter: progid:DXImageTransform.Microsoft.Gradient(
+		StartColorStr='#F7F7F7', EndColorStr='#E4E5E5', GradientType=0);
+	box-shadow: 0px 1px 0px #000;
+	font-weight: bold;
+}
+
+a.button:hover {
+	background-color: #EEEEEE;
+	background: -moz-linear-gradient(top, #E4E5E5, #F7F7F7);
+	background: -webkit-gradient(linear,
+		left top, left bottom, from(#E4E5E5), to(#F7F7F7));
+	filter: progid:DXImageTransform.Microsoft.Gradient(
+		StartColorStr='#E4E5E5', EndColorStr='#F7F7F7', GradientType=0);
+	color: #111111 !important;
+	cursor: pointer;
+}
+
+a.button:focus {
+	background-color: #E2E2E2;
+}
+
+input.primary-button {
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+	font-size: 11px;
+	border: 1px solid #BBBBBB !important;
+	color: #333333 !important;
+	padding: 5px !important;
+	text-decoration: none !important;
+	display: inline !important;
+	/* Mozilla: */
+	background: -moz-linear-gradient(top, #FFFFFF, #EFEFEF);
+	-moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+	/* Chrome, Safari:*/
+	background: -webkit-gradient(linear,
+		left top, left bottom, from(#FFFFFF), to(#EFEFEF));
+	-webkit-box-shadow: 0px 1px 0px #000;
+	/* MSIE */
+	filter: progid:DXImageTransform.Microsoft.Gradient(
+		StartColorStr='#FFFFFF', EndColorStr='#EFEFEF', GradientType=0);
+	box-shadow: 0px 1px 0px #000;
+	font-weight: bold;
+}
+
+input.primary-button:hover {
+	cursor: pointer;
+	background: -moz-linear-gradient(top, #EFEFEF, #FFFFFF);
+	/* Chrome, Safari:*/
+	background: -webkit-gradient(linear,
+		left top, left bottom, from(#EFEFEF), to(#FFFFFF));
+	/* MSIE */
+	filter: progid:DXImageTransform.Microsoft.Gradient(
+		StartColorStr='#EFEFEF', EndColorStr='#FFFFFF', GradientType=0);
+}
+
+/**
+ * Form`s table
+*/
+
+table.account-table {
+	font-size: 0.9em;
+	border-collapse: collapse;
+	width: 100%;
+}
+
+table.account-table label {
+	font-weight: bold;
+	text-align: right !important;
+	vertical-align: middle;
+}
+
+table.account-table th {
+	text-align: left;
+}
+
+table.account-table tr {
+	border-top: 1px solid #EAEAEA;
+}
+
+tr.no-border {
+	border: none !important;
+}
+
+table.account-table td {
+	padding: 0.5em 0 0.5em 1em;
+}
+
+table.account-table td.fixed-width-label {
+	max-width: 100px !important;
+}
+
+td.top {
+	vertical-align: top !important;
+}
+
+td.right-td {
+	text-align: right !important;
+}
+
+/**
+ * Form fields
+*/
+
+label {
+	cursor: pointer;
+}
+
+select.account-select.medium {
+	max-width: 200px !important;
+}
+
+textarea {
+	font-family: Helvetica,Arial,Verdana,sans-serif,"MS sans serif";
+}
+
+textarea.account-textarea.large {
+	width: 350px !important;
+	height: 100px;
+	font-size: 1em !important;
+}
+
+input.text-input, textarea.small,
+textarea.medium, textarea.large {
+	background-color: #FFFFFF;
+	border: 1px solid #A5CED1;
+	font-size: 0.9em !important;
+	padding: 0.5em;
+}
+
+input.text-input.small {
+	width: 100px;
+}
+
+input.text-input.medium {
+	width: 200px;
+}
+
+input.text-input.large {
+	width: 350px;
+}
+
+input.error {
+	border: 1px solid #B50000;
+}
+
+p.error-hint {
+	border: none;
+	background-color: transparent;
+	color: #B50000;
+	font-size: 100%;
+}
+
+/**
+ * Fields events
+*/
+input.text-input:focus,
+textarea.account-textarea:focus {
+	background-color: #FFFAD6;
+}
+
+
+div.account-links {
+	background-color: #F7F7F7;
+	padding: 0.7em 0em 1em 0.7em;
+	width: 100%;
+}
+
+/**
+ * Messages
+*/
+
+.error-msg {
+	border: 1px solid #B50000 !important;
+	background-color: #FFCECE !important;
+	color: #333333 !important;
+	font-size: 0.9em !important;
+	font-weight: bold;
+	padding: 0.5em 0em 0.5em 1em !important;
+	margin: 1em 0em 0em 0.5em !important;
+	width: 100%;
+}
+
+.system-msg {
+	border: 1px solid #FFAE00 !important;
+	background-color: #FFF5CE !important;
+	color: #333333 !important;
+	font-size: 0.9em !important;
+	font-weight: bold;
+	padding: 0.5em 0em 0.5em 0.3em !important;
+	margin: 1em 0em 0.5em 0em !important;
+	width: 100%;
+}
+
+.system-msg, .error-msg {
+	text-indent: 2em;
+}
+
+/**
+ * Account Datatable
+*/
+
+table.account-datatable {
+	border-collapse: collapse;
+	width: 100%;
+	border: 1px solid #D6D6D6;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	font-size: .9em;
+}
+
+table.account-datatable tr,
+table.account-datatable td {
+	padding: 0.5em;
+}
+
+table.account-datatable tbody td {
+	border: 1px solid #D6D6D6;
+}
+
+table.account-datatable thead {
+	background-color: #F2F2F2 !important;
+	color: #666666 !important;
+	padding: 0.5em !important;
+	/* Mozilla: */
+	background: -moz-linear-gradient(top, #EFEFEF, #e8eaeb);
+	/* Chrome, Safari:*/
+	background: -webkit-gradient(linear,
+		left top, left bottom, from(#F7F7F7), to(#E4E5E5));
+	/* MSIE */
+	filter: progid:DXImageTransform.Microsoft.Gradient(
+		StartColorStr='#F7F7F7', EndColorStr='#E4E5E5', GradientType=0);
+	-moz-box-shadow: 0 1px 2px #999999;
+	-webkit-box-shadow: 0px 1px 2px #999999;
+	
+	/* text shadow - needed for Internet explorer */
+	height: 1em;
+	filter: Shadow(Color=#EFEFEF, 
+				   Direction=135, 
+				   Strength=5);
+	/* Needed for Gecko */
+	line-height: 2em;
+	white-space: nowrap;
+	text-shadow: #FFFFFF 0px 1px 0px;
+	font-weight: bold;
+}
+
+/*f8 -> f6*/
+
+table.account-datatable thead td {
+	text-align: left;
+}
+
+table.account-datatable tr.odd {
+	background-color: #F0F0F0 !important;
+	color: #333333 !important;
+	padding: 0.5em !important;
+	/* Mozilla: */
+	background: -moz-linear-gradient(top, #FCFCFC, #F6F6F6);
+	/* Chrome, Safari:*/
+	background: -webkit-gradient(linear,
+		left top, left bottom, from(#FCFCFC), to(#F6F6F6));
+	/* MSIE */
+	filter: progid:DXImageTransform.Microsoft.Gradient(
+		StartColorStr='#FCFCFC', EndColorStr='#F6F6F6', GradientType=0);
+}
+
+table.account-datatable tr.even {
+	background-color: #FFFFFF;
+}
+
+/**
+ * More actions
+*/
+
+div.more-actions {
+	width: 100%;
+	
+}
+
+div.more-actions a {
+	display: block;
+	padding-left: 0.5em;
+	margin: 0.3em;
+	text-decoration: none;
+}
+
+div.more-actions a:hover {
+	text-decoration: underline;
+}
+
+div#operations {
+	z-index: 1001;
+	position: absolute;
+	right: 1.5em;
+	width: 200px;
+	font-size: 12px;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+	border: 1px solid #BBBBBB !important;
+	color: #333333 !important;
+	text-decoration: none !important;
+	display: inline !important;
+	/* Mozilla: */
+	background: -moz-linear-gradient(top, #FFFFFF, #EFEFEF);
+	-moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+	/* Chrome, Safari:*/
+	background: -webkit-gradient(linear,
+		left top, left bottom, from(#FFFFFF), to(#EFEFEF));
+	-webkit-box-shadow: 0px 1px 0px #000;
+	/* MSIE */
+	filter: progid:DXImageTransform.Microsoft.Gradient(
+		StartColorStr='#FFFFFF', EndColorStr='#EFEFEF', GradientType=0);
+	box-shadow: 0px 1px 0px #000;
+}
+
+div.operation-title {
+	padding: 0.5em;
+}
+
+div.operation-title a.account-link {
+	text-decoration: none;
+	color: #333333 !important;
+	font-weight: bold !important;
+}
+
+div.separator-div {
+	width: 100%;
+	height: 1px;
+	background-color: #E2E2E2;
+	margin-bottom: 0.7em;
+}
+
+/**
+ * Filter section
+*/
+
+div.filter-section {
+	border-bottom: 1px solid #EAEAEA;
+	width: 100%;
+}
+
+div.filter-section:hover {
+	background-color: #EFFBFF;
+}
+
+div.filter-section table.account-table {
+	background: none !important;
+}
+
+div.filter-section table.account-table:hover {
+	background-color: #EFFBFF !important;
+}
+
+.hidden-loading {
+	display: none;
+}
+
+.view-multiline {
+	white-space: pre;
+}
+/** profile picture **/
+.profile_picture{
+	width: 128px;
+	height: 192px;
+	position: relative;
+	border: 1px solid #ddd;
+	-moz-box-shadow: 2px 2px 2px #ddd;
+	-webkit-box-shadow: 2px 2px 2px #ddd;
+	box-shadow: 2px 2px 2px #ddd;
+}
+
+.profile_picture>img{
+	width: 128px;
+	height: 192px;
+}
+
+.profile_picture a.close{
+	position: absolute;
+	top: 10px;
+	left: 100px;
+}
+

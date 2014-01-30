@@ -1,0 +1,92 @@
+<h1 class="account-h1" tal:content="string:${options/network_name} account"></h1>
+
+<div class="error-msg"
+     tal:condition="python:options.get('error', False)"
+     tal:content="options/error" />
+<div class="system-msg"
+     tal:condition="python:options.get('message', False)"
+     tal:content="options/message" />
+
+<p class="not-logged-in" tal:condition="not: options/user_info">
+    You must be authenticated to edit your profile.
+    Please <a href="/loggedin">log in</a>.
+</p>
+
+<tal:block define="data options/user_info" condition="data">
+
+<p>
+
+<div class="account-links">
+    <a class="button" tal:attributes="href string:${options/base_url}/edit_account_html" title="Edit account settigns">
+        <img src="/++resource++eea.userseditor-www/settings.png" class="middle-image image12" alt="" title="Edit account settings" />
+        Account settings
+    </a>
+    &nbsp;
+    <a tal:attributes="href string:${options/base_url}/change_password_html" class="button" title="Change your account password">
+        <img src="/++resource++eea.userseditor-www/lock.png" class="middle-image image12" alt="" title="Edit account settings" />
+        Change password
+    </a>
+    &nbsp;
+    <a tal:attributes="href string:${options/base_url}/profile_picture_html"
+       class="button" title="Select your profile picture">
+        <img src="/++resource++eea.userseditor-www/picture.png" class="middle-image image12"
+             alt="" title="Select profile picture" />
+        Profile Picture
+    </a>
+</div>
+
+<p>Your account information:</p>
+
+<table class="account-table">
+  <tr>
+    <th>First name:</th>
+    <td tal:content="data/first_name" />
+  </tr>
+
+  <tr>
+    <th>Last name:</th>
+    <td tal:content="data/last_name" />
+  </tr>
+
+  <tr>
+    <th>Job title:</th>
+    <td tal:content="data/job_title" />
+  </tr>
+
+  <tr>
+    <th>E-mail:</th>
+    <td tal:content="data/email" />
+  </tr>
+
+  <tr>
+    <th>URL:</th>
+    <td tal:content="data/url" />
+  </tr>
+
+  <tr>
+    <th>Postal address:</th>
+    <td class="view-multiline" tal:content="data/postal_address" />
+  </tr>
+
+  <tr>
+    <th>Telephone number:</th>
+    <td tal:content="data/phone" />
+  </tr>
+
+  <tr>
+    <th>Mobile telephone number:</th>
+    <td tal:content="data/mobile" />
+  </tr>
+
+  <tr>
+    <th>Fax number:</th>
+    <td tal:content="data/fax" />
+  </tr>
+
+  <tr>
+    <th>Organisation:</th>
+    <td tal:content="data/organisation" />
+  </tr>
+</table>
+
+</tal:block>

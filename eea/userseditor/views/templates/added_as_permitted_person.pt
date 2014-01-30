@@ -1,0 +1,4 @@
+<strong>Roles</strong> <br/>
+<div> + <span tal:content="view/entry/data/role" /></div>
+
+
