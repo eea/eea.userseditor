@@ -13,7 +13,6 @@
 </p>
 
 <tal:block define="data options/user_info" condition="data">
-
 <p>
 
 <div class="account-links">
@@ -83,9 +82,13 @@
     <td tal:content="data/fax" />
   </tr>
 
-  <tr>
+  <tr tal:condition="not:options/pending_membership">
     <th>Organisation:</th>
     <td tal:content="data/organisation" />
+  </tr>
+  <tr tal:condition="options/pending_membership">
+    <th>Organisation (pending membership):</th>
+    <td><div tal:repeat="name options/pending_membership" tal:content="name" /></td>
   </tr>
 </table>
 

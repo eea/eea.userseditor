@@ -1,27 +1,24 @@
-from datetime import datetime
-import logging
-from ldap import INSUFFICIENT_ACCESS
-
 from AccessControl import ClassSecurityInfo
+from AccessControl.Permissions import view
 from App.class_init import InitializeClass
 from App.config import getConfiguration
-from Products.PageTemplates.PageTemplateFile import PageTemplateFile
-from OFS.SimpleItem import SimpleItem
 from OFS.PropertyManager import PropertyManager
-from AccessControl.Permissions import view
-
+from OFS.SimpleItem import SimpleItem
+from Products.PageTemplates.PageTemplateFile import PageTemplateFile
+from datetime import datetime
+from eea import usersdb
+from email.mime.text import MIMEText
+from image_processor import scale_to
+from ldap import INSUFFICIENT_ACCESS
 from persistent.list import PersistentList
 from persistent.mapping import PersistentMapping
-import deform
-
 from zope.component import getUtility
 from zope.component.interfaces import ComponentLookupError
 from zope.sendmail.interfaces import IMailDelivery
-from email.mime.text import MIMEText
+import deform
+import json
+import logging
 
-from eea import usersdb
-
-from image_processor import scale_to
 
 cfg = getConfiguration()
 # constant defined in env
@@ -197,6 +194,11 @@ class UsersEditor(SimpleItem, PropertyManager):
             agent = self._get_ldap_agent()
             user_id = _get_user_id(REQUEST)
             options['user_info'] = agent.user_info(user_id)
+            pending_ids = agent.pending_membership(user_id)
+            options['pending_membership'] = []
+            if pending_ids:
+                options['pending_membership'] = [
+                    agent.org_info(id)['name'] for id in pending_ids]
         else:
             options['user_info'] = None
         options.update(_get_session_messages(REQUEST))
@@ -215,14 +217,42 @@ class UsersEditor(SimpleItem, PropertyManager):
         form_data = _session_pop(REQUEST, SESSION_FORM_DATA, None)
         if form_data is None:
             form_data = agent.user_info(user_id)
+            pending = agent.pending_membership(user_id)
+            if pending:
+                form_data['organisation'] = pending[0]
+
+        orgs = agent.all_organisations()
+        orgs = [{'id':k, 'text':v['name']} for k,v in orgs.items()]
+
+        user_orgs = list(agent.user_organisations(user_id))
+        if not user_orgs:
+            org = form_data['organisation']
+            if org:
+                orgs.append({'id':org, 'text':org})
+
+        # We're introducing the pendingUniqueMember attribute of Organisations,
+        # to signify that a user can be made a member of an organisation.
+        # We have the information split in several places:
+        # * we have the 'o' attribute for users, which is a plain text field
+        #   where a user can enter any text. This is what we want to replace,
+        #   in the interface
+        # * we have the uniqueMember attributes of Organisations, where a user
+        #   can be listed as member. This is what we would like to have exposed
+
+        schema = user_info_schema.clone()
+        schema['organisation'].widget = deform.widget.TextInputWidget(size=60)
+        schema['organisation'].widget.custom_style = "width:364px"
+        orgs.sort(lambda x,y:cmp(x['text'], y['text']))
 
         options = {
             'base_url': self.absolute_url(),
             'form_data': form_data,
             'errors': errors,
-            'schema': user_info_schema,
+            'schema': schema,
+            'organisations':json.dumps(orgs),
         }
         options.update(_get_session_messages(REQUEST))
+
         return self._render_template('zpt/edit_account.zpt', **options)
 
     security.declareProtected(view, 'edit_account')
@@ -246,6 +276,26 @@ class UsersEditor(SimpleItem, PropertyManager):
         else:
             agent = self._get_ldap_agent(write=True)
             agent.bind_user(user_id, _get_user_password(REQUEST))
+
+            # make a check if user is changing the organisation
+            old_info = agent.user_info(user_id)
+
+            if user_data['organisation'] != old_info['organisation']:
+                # first, remove the pending membership to any old organisation
+                pending_ids = agent.pending_membership(user_id)
+                for org_id in pending_ids:
+                    agent.remove_pending_from_org(org_id, [user_id])
+
+                # test if the new organisation an org id
+                org_id = user_data['organisation']
+                try:
+                    org_info = agent.org_info(org_id)
+                except:
+                    pass
+                else:
+                    user_data['organisation'] = org_info['name']
+                    agent.add_pending_to_org(org_id, [user_id])
+
             agent.set_user_info(user_id, user_data)
             when = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             _set_session_message(REQUEST, 'message', "Profile saved (%s)" % when)

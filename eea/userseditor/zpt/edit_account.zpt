@@ -43,9 +43,9 @@
     <tr tal:define="field_name schema_field/name;
                     field python:{
                       'name': field_name,
-                      'value': options['form_data'][field_name],
+                      'value': options['form_data'].get(field_name),
                       'label': schema_field.description,
-                      'error': options['errors'].get(field_name, None),
+                      'error': options['errors'].get(field_name),
                       'widget': schema_field.widget,
                       'required': schema_field.required,
                     }">
