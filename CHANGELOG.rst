@@ -1,7 +1,10 @@
 1.1.4 (unreleased)
 --------------------
-* Feature: WIP: added support for pending membership to organisations
+* Feature: added support for pending membership to organisations
   [tiberich #15263]
+* Feature: improved log entry views by compacting multiple entries
+  to single table row
+  [tiberich #16665]
 
 1.1.3 (2014-01-10)
 --------------------

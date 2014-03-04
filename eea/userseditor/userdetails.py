@@ -1,12 +1,12 @@
-from AccessControl import ClassSecurityInfo, Unauthorized
-from AccessControl.Permissions import view, view_management_screens
+#from AccessControl.Permissions import view  #, view_management_screens
+#from App.class_init import InitializeClass
+#from eea import usersdb
+from AccessControl import ClassSecurityInfo # , Unauthorized
 from Acquisition import Implicit
-from App.class_init import InitializeClass
 from App.config import getConfiguration
 from DateTime import DateTime
 from OFS.SimpleItem import SimpleItem
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
-from eea import usersdb
 from eea.usersdb import factories
 from zope.component import getMultiAdapter
 from zope.pagetemplate.pagetemplatefile import PageTemplateFile as Z3Template
@@ -154,7 +154,7 @@ class UserDetails(SimpleItem):
             entry['timestamp'] = date.ISO()
             view = VIEWS.get(entry['action'])
             if not view:
-                view = getMultiAdapter((self, self.REQUEST), 
+                view = getMultiAdapter((self, self.REQUEST),
                                 name="details_" + entry['action'])
                 VIEWS[entry['action']] = view
             entry['view'] = view
@@ -179,17 +179,36 @@ class UserDetails(SimpleItem):
                     if role:
                         #print "Removing role", role, date.asdatetime().date()
                         filtered_roles.remove(role)
-                if entry['action'] in ["REMOVED_FROM_ROLE", 
+                if entry['action'] in ["REMOVED_FROM_ROLE",
                                        "REMOVED_AS_ROLE_OWNER"]:
                     role = entry.get('data', {}).get('role')
                     if role:
                         #print "Adding role", role, date.asdatetime().date()
                         filtered_roles.add(role)
 
+        output = []
+        for entry in log_entries:
+            if output:
+                last_entry = output[-1]
+                check = ['author', 'action', 'timestamp']
+                flag = True
+                for k in check:
+                    if last_entry[k] != entry[k]:
+                        flag = False
+                        break
+                if flag:
+                    last_entry['data'].append(entry['data'])
+                else:
+                    entry['data'] = [entry['data']]
+                    output.append(entry)
+            else:
+                entry['data'] = [entry['data']]
+                output.append(entry)
+
         return self._render_template("zpt/userdetails/index.zpt",
                                      context=self, filtered_roles=filtered_roles,
                                      user=user, roles=roles, multi=multi,
-                                     log_entries=log_entries)
+                                     log_entries=output)
 
     security.declarePublic("simple_profile")
     def simple_profile(self, REQUEST):

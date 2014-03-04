@@ -1,5 +1,4 @@
-<div tal:define="data view/entry/data">
-
+<div tal:repeat="data view/entry/data">
   <div tal:condition="data/organisations">
     <strong>Organisations</strong> <br/>
     <div tal:repeat="org data/organisations">- <span tal:replace="org" /></div>
@@ -19,5 +18,4 @@
     <strong>Roles as permitted person</strong> <br/>
     <div tal:repeat="role data/roles_permittedPerson">- <span tal:replace="role" /></div>
   </div>
-
 </div>

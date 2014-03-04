@@ -1,4 +1,4 @@
-<div tal:define="data view/entry/data">
+<div tal:repeat="data view/entry/data">
 
   <div tal:condition="data/organisations">
     <strong>Organisations</strong> <br/>
