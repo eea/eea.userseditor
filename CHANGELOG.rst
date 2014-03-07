@@ -1,5 +1,6 @@
 1.1.4 (unreleased)
 --------------------
+* added edit link for managers on user index [dumitval]
 * Feature: added support for pending membership to organisations
   [tiberich #15263]
 * Feature: improved log entry views by compacting multiple entries

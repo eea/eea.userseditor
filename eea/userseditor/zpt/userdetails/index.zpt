@@ -52,7 +52,14 @@
                 is_manager common/is_manager;
                 is_authenticated common/is_authenticated;">
 
-        <h1 property="foaf:name" tal:content="user/full_name"></h1>
+        <h1 property="foaf:name">
+            <tal:block content="user/full_name" />
+            <a tal:condition="is_manager"
+                style="background:none"
+                tal:attributes="href string:/eionet_account_tools/users/edit_user?id=${user/uid}">
+                <img src="/++resource++eea.userseditor-www/edit.gif" alt="Edit" />
+            </a>
+        </h1>
 
         <div class="tip-msg" tal:condition="not: is_authenticated">
           You are displaying this EIONET User details as anonymous.
