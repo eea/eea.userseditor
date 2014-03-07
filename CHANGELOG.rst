@@ -1,4 +1,7 @@
-1.1.4 (unreleased)
+1.1.5 (unreleased)
+--------------------
+
+1.1.4 (2014-03-07)
 --------------------
 * added edit link for managers on user index [dumitval]
 * Feature: added support for pending membership to organisations
