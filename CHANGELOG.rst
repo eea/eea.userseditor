@@ -1,5 +1,8 @@
-1.1.5 (unreleased)
+1.1.5 (2014-05-9)
 --------------------
+* Bug fix: don't fail on user details page - history when encountering 
+  roles that are not in the filtered roles list
+  [tiberich]
 
 1.1.4 (2014-03-07)
 --------------------

@@ -148,7 +148,6 @@ class UserDetails(SimpleItem):
         else:
             filter_date = DateTime().asdatetime().date()
 
-        #print "The roles at last: ", filtered_roles
         for entry in log_entries:
             date = DateTime(entry['timestamp']).toZone("CET")
             entry['timestamp'] = date.ISO()
@@ -159,31 +158,26 @@ class UserDetails(SimpleItem):
                 VIEWS[entry['action']] = view
             entry['view'] = view
 
-            #print entry['action'], entry.get('data')
-
             if date.asdatetime().date() >= filter_date:
 
                 if entry['action'] == 'ENABLE_ACCOUNT':
                     roles = entry.get('data', {}).get('roles')
                     for role in roles:
-                        #print "Removing role", role, date.asdatetime().date()
-                        filtered_roles.remove(role)
+                        if role in filtered_roles:
+                            filtered_roles.remove(role)
                 if entry['action'] == "DISABLE_ACCOUNT":
                     roles = entry.get('data', {}).get('roles')
                     for role in roles:
-                        #print "Adding role", role, date.asdatetime().date()
                         filtered_roles.add(role)
 
                 if entry['action'] in ["ADDED_TO_ROLE", 'ADDED_AS_ROLE_OWNER']:
                     role = entry.get('data', {}).get('role')
-                    if role:
-                        #print "Removing role", role, date.asdatetime().date()
+                    if role and role in filtered_roles:
                         filtered_roles.remove(role)
                 if entry['action'] in ["REMOVED_FROM_ROLE",
                                        "REMOVED_AS_ROLE_OWNER"]:
                     role = entry.get('data', {}).get('role')
                     if role:
-                        #print "Adding role", role, date.asdatetime().date()
                         filtered_roles.add(role)
 
         output = []
