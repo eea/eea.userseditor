@@ -116,6 +116,7 @@ class UserDetails(SimpleItem):
     def _prepare_user_page(self, uid):
         """Shared by index_html and simple_profile"""
         agent = self._get_ldap_agent()
+        #import pdb; pdb.set_trace()
         ldap_roles = sorted(agent.member_roles_info('user', uid, ('description',)))
         roles = []
         for (role_id, attrs) in ldap_roles:
@@ -139,10 +140,10 @@ class UserDetails(SimpleItem):
             multi = None
             user, roles = self._prepare_user_page(uid)
 
-        agent          = self._get_ldap_agent()
+        agent = self._get_ldap_agent()
         log_entries    = list(reversed(agent._get_metadata(uid)))
         VIEWS          = {}
-        filtered_roles = set([info[0] for info in roles])
+        filtered_roles = set([info[0] for info in roles])   # + owner_roles)
         if date_for_roles:
             filter_date = DateTime(date_for_roles).asdatetime().date()
         else:
@@ -159,23 +160,20 @@ class UserDetails(SimpleItem):
             entry['view'] = view
 
             if date.asdatetime().date() >= filter_date:
-
                 if entry['action'] == 'ENABLE_ACCOUNT':
                     roles = entry.get('data', {}).get('roles')
                     for role in roles:
                         if role in filtered_roles:
                             filtered_roles.remove(role)
-                if entry['action'] == "DISABLE_ACCOUNT":
+                elif entry['action'] == "DISABLE_ACCOUNT":
                     roles = entry.get('data', {}).get('roles')
                     for role in roles:
                         filtered_roles.add(role)
-
-                if entry['action'] in ["ADDED_TO_ROLE", 'ADDED_AS_ROLE_OWNER']:
+                elif entry['action'] in ["ADDED_TO_ROLE"]:  #, 'ADDED_AS_ROLE_OWNER']:
                     role = entry.get('data', {}).get('role')
                     if role and role in filtered_roles:
                         filtered_roles.remove(role)
-                if entry['action'] in ["REMOVED_FROM_ROLE",
-                                       "REMOVED_AS_ROLE_OWNER"]:
+                elif entry['action'] in ["REMOVED_FROM_ROLE"]: #"REMOVED_AS_ROLE_OWNER"]:
                     role = entry.get('data', {}).get('role')
                     if role:
                         filtered_roles.add(role)
@@ -200,7 +198,8 @@ class UserDetails(SimpleItem):
                 output.append(entry)
 
         return self._render_template("zpt/userdetails/index.zpt",
-                                     context=self, filtered_roles=filtered_roles,
+                                     context=self,
+                                     filtered_roles=filtered_roles,
                                      user=user, roles=roles, multi=multi,
                                      log_entries=output)
 

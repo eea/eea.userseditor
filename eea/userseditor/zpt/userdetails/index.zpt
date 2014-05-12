@@ -237,6 +237,9 @@
                     </tal:def>
                 </tr>
             </table>
+            <p>NOTE: the changelog may not be complete, older modifications to
+                the account prior to implementation of the CHANGELOG will not
+                be shown here</p>
         </div>
 
     </div>

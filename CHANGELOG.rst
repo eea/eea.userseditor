@@ -1,5 +1,12 @@
-1.1.6 (unreleased)
------------------
+1.1.7 (unreleased)
+------------------
+
+1.1.6 (2014-05-12)
+------------------
+* Bug fix: don't take into consideration "owner of role" when 
+  displaying history of roles
+  [tiberich #19565]
+
 
 1.1.5 (2014-05-9)
 --------------------
