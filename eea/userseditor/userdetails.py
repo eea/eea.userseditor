@@ -1,7 +1,4 @@
-#from AccessControl.Permissions import view  #, view_management_screens
-#from App.class_init import InitializeClass
-#from eea import usersdb
-from AccessControl import ClassSecurityInfo # , Unauthorized
+from AccessControl import ClassSecurityInfo  # , Unauthorized
 from Acquisition import Implicit
 from App.config import getConfiguration
 from DateTime import DateTime
@@ -19,7 +16,7 @@ NETWORK_NAME = getattr(cfg, 'environment', {}).get('NETWORK_NAME', 'EIONET')
 log = logging.getLogger(__name__)
 
 manage_add_userdetails_html = PageTemplateFile('zpt/userdetails/manage_add',
-                                                globals())
+                                               globals())
 
 
 def manage_add_userdetails(parent, id, REQUEST=None):
@@ -33,8 +30,10 @@ def manage_add_userdetails(parent, id, REQUEST=None):
     if REQUEST is not None:
         REQUEST.RESPONSE.redirect(parent.absolute_url() + '/manage_workspace')
 
+
 def _is_authenticated(request):
     return ('Authenticated' in request.AUTHENTICATED_USER.getRoles())
+
 
 def load_template(name, _memo={}):
     if name not in _memo:
@@ -42,6 +41,7 @@ def load_template(name, _memo={}):
     return _memo[name]
 
 zope2_wrapper = PageTemplateFile('zpt/zope2_wrapper.zpt', globals())
+
 
 class TemplateRenderer(Implicit):
     def __init__(self, common_factory=lambda ctx: {}):
@@ -92,6 +92,7 @@ class CommonTemplateLogic(object):
         """ E.g. EIONET, SINAnet etc. """
         return NETWORK_NAME
 
+
 def logged_in_user(request):
     user_id = ''
     if _is_authenticated(request):
@@ -99,6 +100,7 @@ def logged_in_user(request):
         user_id = str(user.id)
 
     return user_id
+
 
 class UserDetails(SimpleItem):
     meta_type = 'Eionet User Details'
@@ -116,17 +118,20 @@ class UserDetails(SimpleItem):
     def _prepare_user_page(self, uid):
         """Shared by index_html and simple_profile"""
         agent = self._get_ldap_agent()
-        #import pdb; pdb.set_trace()
-        ldap_roles = sorted(agent.member_roles_info('user', uid, ('description',)))
+        ldap_roles = sorted(agent.member_roles_info('user',
+                                                    uid,
+                                                    ('description',)))
         roles = []
         for (role_id, attrs) in ldap_roles:
-            roles.append((role_id, attrs.get('description', ('', ))[0]))
+            roles.append((role_id,
+                          attrs.get('description', ('', ))[0].decode('utf8')))
         user = agent.user_info(uid)
         user['jpegPhoto'] = agent.get_profile_picture(uid)
         user['certificate'] = agent.get_certificate(uid)
         return user, roles
 
     security.declarePublic("index_html")
+
     def index_html(self, REQUEST):
         """ """
         uid = REQUEST.form.get('uid')
@@ -141,8 +146,8 @@ class UserDetails(SimpleItem):
             user, roles = self._prepare_user_page(uid)
 
         agent = self._get_ldap_agent()
-        log_entries    = list(reversed(agent._get_metadata(uid)))
-        VIEWS          = {}
+        log_entries = list(reversed(agent._get_metadata(uid)))
+        VIEWS = {}
         filtered_roles = set([info[0] for info in roles])   # + owner_roles)
         if date_for_roles:
             filter_date = DateTime(date_for_roles).asdatetime().date()
@@ -155,28 +160,23 @@ class UserDetails(SimpleItem):
             view = VIEWS.get(entry['action'])
             if not view:
                 view = getMultiAdapter((self, self.REQUEST),
-                                name="details_" + entry['action'])
+                                       name="details_" + entry['action'])
                 VIEWS[entry['action']] = view
             entry['view'] = view
 
+            _roles = entry.get('data', {}).get('roles')
+            _role = entry.get('data', {}).get('role')
             if date.asdatetime().date() >= filter_date:
                 if entry['action'] == 'ENABLE_ACCOUNT':
-                    roles = entry.get('data', {}).get('roles')
-                    for role in roles:
-                        if role in filtered_roles:
-                            filtered_roles.remove(role)
+                    filtered_roles.difference_update(set(_roles))
                 elif entry['action'] == "DISABLE_ACCOUNT":
-                    roles = entry.get('data', {}).get('roles')
-                    for role in roles:
-                        filtered_roles.add(role)
-                elif entry['action'] in ["ADDED_TO_ROLE"]:  #, 'ADDED_AS_ROLE_OWNER']:
-                    role = entry.get('data', {}).get('role')
-                    if role and role in filtered_roles:
-                        filtered_roles.remove(role)
-                elif entry['action'] in ["REMOVED_FROM_ROLE"]: #"REMOVED_AS_ROLE_OWNER"]:
-                    role = entry.get('data', {}).get('role')
-                    if role:
-                        filtered_roles.add(role)
+                    filtered_roles.update(set(_roles))
+                elif entry['action'] in ["ADDED_TO_ROLE"]:
+                    if _role and _role in filtered_roles:
+                        filtered_roles.remove(_role)
+                elif entry['action'] in ["REMOVED_FROM_ROLE"]:
+                    if _role:
+                        filtered_roles.add(_role)
 
         output = []
         for entry in log_entries:
@@ -204,15 +204,17 @@ class UserDetails(SimpleItem):
                                      log_entries=output)
 
     security.declarePublic("simple_profile")
+
     def simple_profile(self, REQUEST):
         """ """
         uid = REQUEST.form.get('uid')
         user, roles = self._prepare_user_page(uid)
         tr = TemplateRenderer(CommonTemplateLogic)
         return tr.__of__(self).render("zpt/userdetails/simple.zpt",
-                                     user=user, roles=roles)
+                                      user=user, roles=roles)
 
     security.declarePublic("userphoto_jpeg")
+
     def userphoto_jpeg(self, REQUEST):
         """ """
         uid = REQUEST.form.get('uid')
@@ -221,6 +223,7 @@ class UserDetails(SimpleItem):
         return agent.get_profile_picture(uid)
 
     security.declarePublic("usercertificate")
+
     def usercertificate(self, REQUEST):
         """ """
         uid = REQUEST.form.get('uid')

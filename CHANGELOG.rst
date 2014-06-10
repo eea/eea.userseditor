@@ -1,5 +1,6 @@
 1.1.7 (unreleased)
 ------------------
+* Bugfix related to the encoding of role descriptions [dumitval]
 
 1.1.6 (2014-05-12)
 ------------------
