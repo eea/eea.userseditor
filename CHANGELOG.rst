@@ -1,3 +1,6 @@
+1.1.9 (unreleased)
+------------------
+
 1.1.9 (2014-06-16)
 ------------------
 * Bug fix: display the proper organisation name in changelog
