@@ -35,6 +35,23 @@
         />
 
     <browser:page
+        name="details_ADD_PENDING_TO_ORG"
+        for="*"
+        permission="zope.Public"
+        class=".changelog.AddToOrg"
+        template="templates/add_pending_to_org.pt"
+        />
+
+    <browser:page
+        name="details_REMOVED_PENDING_FROM_ORG"
+        for="*"
+        permission="zope.Public"
+        class=".changelog.RemovedFromOrg"
+        template="templates/removed_pending_from_org.pt"
+        />
+
+
+    <browser:page
         name="details_ADDED_TO_ROLE"
         for="*"
         permission="zope.Public"

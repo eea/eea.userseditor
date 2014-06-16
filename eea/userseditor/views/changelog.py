@@ -65,6 +65,21 @@ class RemovedFromOrg(BaseActionDetails):
     action_title = "Removed from organisation"
 
 
+class AddPendingToOrg(BaseActionDetails):
+    """ Details for action ADD_PENDING_TO_ORG
+    """
+
+    action_title = "Added pending to organisation"
+
+
+class RemovedPendingFromOrg(BaseActionDetails):
+    """ Details for action REMOVE_PENDING_TO_ORG
+    """
+
+    action_title = "Removed pending from organisation"
+
+
+
 class AddedToRole(BaseActionDetails):
     """ Details for action DISABLE_ACCOUNT
     """

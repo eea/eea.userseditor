@@ -1,5 +1,7 @@
-1.1.8 (unreleased)
+1.1.8 (2014-06-16)
 ------------------
+* Bug fix: added views for the ADD_PENDING_TO_ORG changelog action
+  [tiberich #20081]
 
 1.1.7 (2014-06-10)
 ------------------
