@@ -37,6 +37,18 @@ class BaseActionDetails(BrowserView):
         return factories.agent_from_uf(self.context.restrictedTraverse("/acl_users"))
 
 
+class BaseOrganisationDetails(object):
+
+    @property
+    def organisation(self):
+        for entry in self.entry['data']:
+            org = entry.get('organisation')
+            if org:
+                return self._get_ldap_agent().org_info(org)['name']
+
+        return ""
+
+
 class EnableAccount(BaseActionDetails):
     """ Details for action ENABLE_ACCOUNT
     """
@@ -51,28 +63,28 @@ class DisableAccount(BaseActionDetails):
     action_title = "Disabled account"
 
 
-class AddToOrg(BaseActionDetails):
+class AddToOrg(BaseActionDetails, BaseOrganisationDetails):
     """ Details for action DISABLE_ACCOUNT
     """
 
     action_title = "Added to organisation"
 
 
-class RemovedFromOrg(BaseActionDetails):
+class RemovedFromOrg(BaseActionDetails, BaseOrganisationDetails):
     """ Details for action DISABLE_ACCOUNT
     """
 
     action_title = "Removed from organisation"
 
 
-class AddPendingToOrg(BaseActionDetails):
+class AddPendingToOrg(BaseActionDetails, BaseOrganisationDetails):
     """ Details for action ADD_PENDING_TO_ORG
     """
 
     action_title = "Added pending to organisation"
 
 
-class RemovedPendingFromOrg(BaseActionDetails):
+class RemovedPendingFromOrg(BaseActionDetails, BaseOrganisationDetails):
     """ Details for action REMOVE_PENDING_TO_ORG
     """
 
