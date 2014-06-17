@@ -1,5 +1,8 @@
-1.1.9 (unreleased)
+1.1.10 (2014-06-16)
 ------------------
+* Bug fix: use the proper author name based on logged in user in changelog
+  for user operations
+  [tiberich #20081]
 
 1.1.9 (2014-06-16)
 ------------------

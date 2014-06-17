@@ -10,7 +10,7 @@ from eea import usersdb
 from email.mime.text import MIMEText
 from image_processor import scale_to
 from ldap import INSUFFICIENT_ACCESS
-from persistent.list import PersistentList
+#from persistent.list import PersistentList
 from persistent.mapping import PersistentMapping
 from zope.component import getUtility
 from zope.component.interfaces import ComponentLookupError
@@ -34,6 +34,18 @@ log = logging.getLogger(__name__)
 
 WIDTH = 128
 HEIGHT = 192
+
+
+def _is_authenticated(request):
+    return ('Authenticated' in request.AUTHENTICATED_USER.getRoles())
+
+def logged_in_user(request):
+    user_id = ''
+    if _is_authenticated(request):
+        user = request.get('AUTHENTICATED_USER', '')
+        user_id = user.id
+
+    return user_id
 
 manage_addUsersEditor_html = PageTemplateFile('zpt/add', globals())
 def manage_addUsersEditor(parent, id, title="", ldap_server="", REQUEST=None):
@@ -173,9 +185,11 @@ class UsersEditor(SimpleItem, PropertyManager):
             legacy_agent = CircaUsersDB(ldap_server=self.legacy_ldap_server,
                                         users_dn=CIRCA_USERS_DN_SUFFIX,
                                         encoding="ISO-8859-1")
-            return DualLDAPProxy(current_agent, legacy_agent)
+            agent = DualLDAPProxy(current_agent, legacy_agent)
         else:
-            return current_agent
+            agent = current_agent
+        agent._author = logged_in_user(self.REQUEST)
+        return agent
 
     _zope2_wrapper = PageTemplateFile('zpt/zope2_wrapper.zpt', globals())
 
@@ -443,7 +457,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         try:
             password = _get_user_password(REQUEST)
             agent.bind_user(user_id, password)
-            photo = agent.set_user_picture(user_id, None)
+            agent.set_user_picture(user_id, None)
         except Exception:
             _set_session_message(REQUEST, 'error', "Something went wrong.")
         else:

@@ -113,7 +113,9 @@ class UserDetails(SimpleItem):
         super(UserDetails, self).__init__()
 
     def _get_ldap_agent(self):
-        return factories.agent_from_uf(self.restrictedTraverse("/acl_users"))
+        agent = factories.agent_from_uf(self.restrictedTraverse("/acl_users"))
+        agent._author = logged_in_user(self.REQUEST)
+        return agent
 
     def _prepare_user_page(self, uid):
         """Shared by index_html and simple_profile"""
