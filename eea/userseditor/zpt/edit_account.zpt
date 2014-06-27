@@ -1,3 +1,6 @@
+<link href="/++resource++eea.ldapadmin-www/selectize/css/selectize.default.css" rel="stylesheet"/>
+<script src="/++resource++eea.ldapadmin-www/selectize/js/standalone/selectize.min.js"></script>
+
 <h1 class="account-h1">
     <span tal:replace="options/network_name"></span> account
     <img src="/++resource++eea.userseditor-www/next.png" class="image12" alt=""
@@ -34,6 +37,14 @@
 <div class="system-msg"
      tal:condition="python:options.get('message', False)"
      tal:content="options/message" />
+
+ <div class="error-msg" tal:condition="options/invalid_nrcs">
+     You belong to the following NRCs but your organisation is not a valid
+     connection to them.
+     <ul>
+         <li tal:repeat="nrc_info options/invalid_nrcs" tal:content="nrc_info/description" />
+     </ul>
+ </div>
 
 <form action="edit_account" method="post" name="edit-account">
 
@@ -97,9 +108,10 @@
     </td>
     <td tal:define="widget_template field/widget/template|string:textinput;
                     input_classes python:['error'] if field['error'] else [];
-                    is_textarea python: widget_template == 'textarea'">
+                    is_textarea python: widget_template == 'textarea';
+                    is_select python: widget_template=='select';">
       <span tal:condition="field/required"/>
-      <input tal:condition="not:is_textarea"
+      <input tal:condition="python: not (is_textarea or is_select)"
              type="text" size="50"
              tal:attributes="id field_id;
                              class python:' '.join(input_classes +
@@ -113,11 +125,26 @@
                                     ['account-textarea', 'large']);
                                 name string:${field/name}:utf8:ustring"
                 tal:content="field/value"></textarea>
+
+    <select tal:condition="is_select"
+        tal:attributes="id field_id; 
+                        name string:${field/name}:utf8:ustring"
+                        >
+        <tal:def tal:define="choices python:field['widget'].values">
+            <option 
+                tal:repeat="ch choices" 
+                tal:attributes="value python:ch[0]; selected python:ch[0] == field['value']" 
+                tal:content="python: ch[1]">1</option>
+        </tal:def>
+    </select>
       <p class="error-hint"
          tal:attributes="id string:error-${field_id}"
          tal:condition="field/error"
          tal:content="field/error" />
     </td>
+    <script>
+        $(document).ready(function() { $("#edit-organisation").selectize({create:true}); });
+    </script>
   </tal:block>
 
 </metal:block>

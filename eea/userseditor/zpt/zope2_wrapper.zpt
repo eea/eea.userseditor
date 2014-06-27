@@ -2,7 +2,7 @@
   <metal:block fill-slot="body">
     <link rel="stylesheet" type="text/css" media="screen"
           href="/++resource++eea.userseditor-www/style.css"/>
-    <script src="/++resource++eea.userseditor-www/jquery-1.4.4.min.js"></script>
+    <!-- <script src="/++resource++eea.userseditor&#45;www/jquery&#45;1.4.4.min.js"></script> -->
     <tal:block content="structure options/body_html"/>
   </metal:block>
 </metal:block>

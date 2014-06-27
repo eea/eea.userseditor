@@ -1,0 +1,9 @@
+<p>Hello <span tal:replace="nfp_info/full_name"/></p>
+
+<p>
+    This email is to announce you that 
+    <span tal:replace="user_info/full_name" />
+    is no longer a valid member of 
+    <span tal:replace="nrc_role_info/description" />.
+</p>
+

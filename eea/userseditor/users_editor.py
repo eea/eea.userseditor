@@ -1,3 +1,6 @@
+#from persistent.list import PersistentList
+
+from eea.ldapadmin.nfp_nrc import get_nrc_roles, get_nfps_for_country
 from AccessControl import ClassSecurityInfo
 from AccessControl.Permissions import view
 from App.class_init import InitializeClass
@@ -10,7 +13,6 @@ from eea import usersdb
 from email.mime.text import MIMEText
 from image_processor import scale_to
 from ldap import INSUFFICIENT_ACCESS
-#from persistent.list import PersistentList
 from persistent.mapping import PersistentMapping
 from zope.component import getUtility
 from zope.component.interfaces import ComponentLookupError
@@ -231,9 +233,6 @@ class UsersEditor(SimpleItem, PropertyManager):
         form_data = _session_pop(REQUEST, SESSION_FORM_DATA, None)
         if form_data is None:
             form_data = agent.user_info(user_id)
-            pending = agent.pending_membership(user_id)
-            if pending:
-                form_data['organisation'] = pending[0]
 
         orgs = agent.all_organisations()
         orgs = [{'id':k, 'text':v['name']} for k,v in orgs.items()]
@@ -243,6 +242,7 @@ class UsersEditor(SimpleItem, PropertyManager):
             org = form_data['organisation']
             if org:
                 orgs.append({'id':org, 'text':org})
+        orgs.sort(lambda x,y:cmp(x['text'], y['text']))
 
         # We're introducing the pendingUniqueMember attribute of Organisations,
         # to signify that a user can be made a member of an organisation.
@@ -253,17 +253,40 @@ class UsersEditor(SimpleItem, PropertyManager):
         # * we have the uniqueMember attributes of Organisations, where a user
         #   can be listed as member. This is what we would like to have exposed
 
+        choices = []
+        for org in orgs:
+            choices.append((org['id'], org['text']))
+
         schema = user_info_schema.clone()
-        schema['organisation'].widget = deform.widget.TextInputWidget(size=60)
-        schema['organisation'].widget.custom_style = "width:364px"
-        orgs.sort(lambda x,y:cmp(x['text'], y['text']))
+        widget = deform.widget.SelectWidget(values=choices)
+        schema['organisation'].widget = widget
+
+        invalid_nrcs = []
+
+        org_info = None
+        country_code = object()
+        try:
+            org_info = agent.org_info(form_data['organisation'])
+        except:
+            pass
+        else:
+            country_code = org_info['country']
+
+        nrc_roles = get_nrc_roles(agent, user_id)
+        form_data['organisation']
+        for nrc_role in nrc_roles:
+            nrc_role_info = agent.role_info(nrc_role)
+            country_code = nrc_role.split('-')[-1]
+            if not org_info or org_info.get('country') != country_code:
+                invalid_nrcs.append(nrc_role_info)
 
         options = {
             'base_url': self.absolute_url(),
             'form_data': form_data,
             'errors': errors,
             'schema': schema,
-            'organisations':json.dumps(orgs),
+            'organisations': json.dumps(orgs),
+            'invalid_nrcs': invalid_nrcs,
         }
         options.update(_get_session_messages(REQUEST))
 
@@ -295,26 +318,56 @@ class UsersEditor(SimpleItem, PropertyManager):
             old_info = agent.user_info(user_id)
 
             if user_data['organisation'] != old_info['organisation']:
-                # first, remove the pending membership to any old organisation
-                pending_ids = agent.pending_membership(user_id)
-                for org_id in pending_ids:
-                    agent.remove_pending_from_org(org_id, [user_id])
-
-                # test if the new organisation an org id
+                # is this organisation an LDAP organisation id?
                 org_id = user_data['organisation']
+                org_info = None
                 try:
                     org_info = agent.org_info(org_id)
                 except:
                     pass
                 else:
                     user_data['organisation'] = org_info['name']
-                    agent.add_pending_to_org(org_id, [user_id])
+                    agent.add_to_org(org_id, [user_id])
+
+                nrc_roles = get_nrc_roles(agent, user_id)
+                for nrc_role in nrc_roles:
+                    nrc_role_info = agent.role_info(nrc_role)
+                    country_code = nrc_role.split('-')[-1]
+                    # if the organisation is not proper for the nrc,
+                    # send an email to all nfps for that country
+                    if not org_info or org_info.get('country') != country_code:
+                        nfps = get_nfps_for_country(agent, country_code)
+                        for nfp_id in nfps:
+                            nfp_info = agent.user_info(nfp_id)
+                            self._send_nfp_nrc_email(nrc_role_info, user_data, nfp_info)
 
             agent.set_user_info(user_id, user_data)
             when = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             _set_session_message(REQUEST, 'message', "Profile saved (%s)" % when)
 
         REQUEST.RESPONSE.redirect(self.absolute_url() + '/edit_account_html')
+
+    def _send_nfp_nrc_email(self, nrc_role_info, user_info, nfp_info):
+        options = {'nrc_role_info':nrc_role_info,
+                   'user_info':user_info,
+                   'nfp_info':nfp_info}
+        email_template = load_template('zpt/nfp_nrc_change_organisation.zpt')
+        email_password_body = email_template.pt_render(options)
+        addr_from = "no-reply@eea.europa.eu"
+        addr_to = nfp_info['email']
+
+        message = MIMEText(email_password_body)
+        message['From'] = addr_from
+        message['To'] = addr_to
+        message['Subject'] = "%s no longer valid member of %s NRC" % \
+            (user_info['full_name'], nrc_role_info['description'])
+
+        try:
+            mailer = getUtility(IMailDelivery, name="Mail")
+            mailer.send(addr_from, [addr_to], message.as_string())
+        except ComponentLookupError:
+            mailer = getUtility(IMailDelivery, name="naaya-mail-delivery")
+            mailer.send(addr_from, [addr_to], message)
 
     security.declareProtected(view, 'change_password_html')
     def change_password_html(self, REQUEST):
