@@ -1,3 +1,8 @@
+1.1.11 (2014-06-30)
+------------------
+* Feature: allow users to select their organisation from a list
+  [tiberich #19143]
+
 1.1.10 (2014-06-16)
 ------------------
 * Bug fix: use the proper author name based on logged in user in changelog
