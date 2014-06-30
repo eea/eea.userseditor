@@ -1,3 +1,6 @@
+1.1.12 (unreleased)
+------------------
+
 1.1.11 (2014-06-30)
 ------------------
 * Feature: allow users to select their organisation from a list
