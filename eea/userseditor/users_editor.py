@@ -210,11 +210,6 @@ class UsersEditor(SimpleItem, PropertyManager):
             agent = self._get_ldap_agent()
             user_id = _get_user_id(REQUEST)
             options['user_info'] = agent.user_info(user_id)
-            pending_ids = agent.pending_membership(user_id)
-            options['pending_membership'] = []
-            if pending_ids:
-                options['pending_membership'] = [
-                    agent.org_info(id)['name'] for id in pending_ids]
         else:
             options['user_info'] = None
         options.update(_get_session_messages(REQUEST))
@@ -243,15 +238,6 @@ class UsersEditor(SimpleItem, PropertyManager):
             if org:
                 orgs.append({'id':org, 'text':org})
         orgs.sort(lambda x,y:cmp(x['text'], y['text']))
-
-        # We're introducing the pendingUniqueMember attribute of Organisations,
-        # to signify that a user can be made a member of an organisation.
-        # We have the information split in several places:
-        # * we have the 'o' attribute for users, which is a plain text field
-        #   where a user can enter any text. This is what we want to replace,
-        #   in the interface
-        # * we have the uniqueMember attributes of Organisations, where a user
-        #   can be listed as member. This is what we would like to have exposed
 
         choices = []
         for org in orgs:
