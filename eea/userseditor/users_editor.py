@@ -1,5 +1,3 @@
-#from persistent.list import PersistentList
-
 from eea.ldapadmin.nfp_nrc import get_nrc_roles, get_nfps_for_country
 from AccessControl import ClassSecurityInfo
 from AccessControl.Permissions import view
@@ -19,7 +17,6 @@ from zope.component.interfaces import ComponentLookupError
 from zope.sendmail.interfaces import IMailDelivery
 import ldap
 import deform
-import json
 import logging
 
 
@@ -271,7 +268,6 @@ class UsersEditor(SimpleItem, PropertyManager):
             'form_data': form_data,
             'errors': errors,
             'schema': schema,
-            'organisations': json.dumps(orgs),
             'invalid_nrcs': invalid_nrcs,
         }
         options.update(_get_session_messages(REQUEST))
@@ -286,7 +282,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         user_form = deform.Form(user_info_schema)
 
         try:
-            user_data = user_form.validate(REQUEST.form.items())
+            new_info = user_form.validate(REQUEST.form.items())
         except deform.ValidationFailure, e:
             session = REQUEST.SESSION
             errors = {}
@@ -303,39 +299,20 @@ class UsersEditor(SimpleItem, PropertyManager):
             # make a check if user is changing the organisation
             old_info = agent.user_info(user_id)
 
-            new_org_id = user_data['organisation']
-            new_org_id_valid = agent.org_exists(new_org_id)
+            new_org_id = new_info['organisation']
             old_org_id = old_info['organisation']
+
+            new_org_id_valid = agent.org_exists(new_org_id)
             old_org_id_valid = agent.org_exists(old_org_id)
 
             if new_org_id != old_org_id:
 
                 if old_org_id_valid:
-                    try:
-                        agent.remove_from_org(old_org_id, [user_id])
-                    except ldap.NO_SUCH_ATTRIBUTE:  # user is not in org
-                        pass
-                    except ldap.INSUFFICIENT_ACCESS:
-                        if 'orgs' in self.aq_parent.objectIds():
-                            org_agent = self.aq_parent['orgs']._get_ldap_agent(bind=True)
-                            try:
-                                org_agent.remove_from_org(old_org_id, [user_id])
-                            except ldap.NO_SUCH_ATTRIBUTE:    #user is not in org
-                                pass
-                        else:
-                            raise
+                    self._remove_from_org(agent, old_org_id, user_id)
 
                 if new_org_id_valid:
-                    try:
-                        agent.add_to_org(new_org_id, [user_id])
-                    except ldap.INSUFFICIENT_ACCESS:
-                        if 'orgs' in self.aq_parent.objectIds():
-                            org_agent = self.aq_parent['orgs']._get_ldap_agent(bind=True)
-                            org_agent.add_to_org(new_org_id, [user_id])
-                        else:
-                            raise
+                    self._add_to_org(agent, new_org_id, user_id)
 
-                user_data['organisation'] = new_org_id
                 if new_org_id_valid:
                     org_info = agent.org_info(new_org_id)
                 else:
@@ -351,13 +328,40 @@ class UsersEditor(SimpleItem, PropertyManager):
                         nfps = get_nfps_for_country(agent, country_code)
                         for nfp_id in nfps:
                             nfp_info = agent.user_info(nfp_id)
-                            self._send_nfp_nrc_email(nrc_role_info, user_data, nfp_info)
+                            self._send_nfp_nrc_email(nrc_role_info, new_info, nfp_info)
 
-            agent.set_user_info(user_id, user_data)
+            agent.set_user_info(user_id, new_info)
             when = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             _set_session_message(REQUEST, 'message', "Profile saved (%s)" % when)
 
         REQUEST.RESPONSE.redirect(self.absolute_url() + '/edit_account_html')
+
+    def _add_to_org(self, agent, org_id, user_id):
+        try:
+            agent.add_to_org(org_id, [user_id])
+        except ldap.INSUFFICIENT_ACCESS:
+            ids = self.aq_parent.objectIds(["Eionet Organisations Editor"])
+            if ids:
+                org_agent = ids[0]._get_ldap_agent(bind=True)
+                org_agent.add_to_org(org_id, [user_id])
+            else:
+                raise
+
+    def _remove_from_org(self, agent, org_id, user_id):
+        try:
+            agent.remove_from_org(org_id, [user_id])
+        except ldap.NO_SUCH_ATTRIBUTE:  # user is not in org
+            pass
+        except ldap.INSUFFICIENT_ACCESS:
+            ids = self.aq_parent.objectIds(["Eionet Organisations Editor"])
+            if ids:
+                org_agent = ids[0]._get_ldap_agent(bind=True)
+                try:
+                    org_agent.remove_from_org(org_id, [user_id])
+                except ldap.NO_SUCH_ATTRIBUTE:    #user is not in org
+                    pass
+            else:
+                raise
 
     def _send_nfp_nrc_email(self, nrc_role_info, user_info, nfp_info):
         options = {'nrc_role_info':nrc_role_info,
