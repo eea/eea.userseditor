@@ -313,10 +313,15 @@ class UsersEditor(SimpleItem, PropertyManager):
                 if old_org_id_valid:
                     try:
                         agent.remove_from_org(old_org_id, [user_id])
+                    except ldap.NO_SUCH_ATTRIBUTE:  # user is not in org
+                        pass
                     except ldap.INSUFFICIENT_ACCESS:
                         if 'orgs' in self.aq_parent.objectIds():
-                            org_agent = self.aq_parent['orgs']._get_ldap_agent()
-                            org_agent.remove_from_org(old_org_id, [user_id])
+                            org_agent = self.aq_parent['orgs']._get_ldap_agent(bind=True)
+                            try:
+                                org_agent.remove_from_org(old_org_id, [user_id])
+                            except ldap.NO_SUCH_ATTRIBUTE:    #user is not in org
+                                pass
                         else:
                             raise
 
@@ -325,13 +330,16 @@ class UsersEditor(SimpleItem, PropertyManager):
                         agent.add_to_org(new_org_id, [user_id])
                     except ldap.INSUFFICIENT_ACCESS:
                         if 'orgs' in self.aq_parent.objectIds():
-                            org_agent = self.aq_parent['orgs']._get_ldap_agent()
+                            org_agent = self.aq_parent['orgs']._get_ldap_agent(bind=True)
                             org_agent.add_to_org(new_org_id, [user_id])
                         else:
                             raise
 
                 user_data['organisation'] = new_org_id
-                org_info = agent.org_info(new_org_id)
+                if new_org_id_valid:
+                    org_info = agent.org_info(new_org_id)
+                else:
+                    org_info = None
 
                 nrc_roles = get_nrc_roles(agent, user_id)
                 for nrc_role in nrc_roles:

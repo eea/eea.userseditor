@@ -1,3 +1,8 @@
+1.1.14 (2014-07-01)
+------------------
+* Bug fix: don't fail when removing user from org if user is not in org
+  [tiberich #19143]
+
 1.1.13 (2014-07-01)
 ------------------
 * Bug fix: use alternate agent to avoid insufficient permissions to perform
