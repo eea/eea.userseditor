@@ -17,6 +17,7 @@ from persistent.mapping import PersistentMapping
 from zope.component import getUtility
 from zope.component.interfaces import ComponentLookupError
 from zope.sendmail.interfaces import IMailDelivery
+import ldap
 import deform
 import json
 import logging
@@ -308,11 +309,26 @@ class UsersEditor(SimpleItem, PropertyManager):
             old_org_id_valid = agent.org_exists(old_org_id)
 
             if new_org_id != old_org_id:
-                # is this organisation an LDAP organisation id?
+
                 if old_org_id_valid:
-                    agent.remove_from_org(old_org_id, [user_id])
+                    try:
+                        agent.remove_from_org(old_org_id, [user_id])
+                    except ldap.INSUFFICIENT_ACCESS:
+                        if 'orgs' in self.aq_parent.objectIds():
+                            org_agent = self.aq_parent['orgs']._get_ldap_agent()
+                            org_agent.remove_from_org(old_org_id, [user_id])
+                        else:
+                            raise
+
                 if new_org_id_valid:
-                    agent.add_to_org(new_org_id, [user_id])
+                    try:
+                        agent.add_to_org(new_org_id, [user_id])
+                    except ldap.INSUFFICIENT_ACCESS:
+                        if 'orgs' in self.aq_parent.objectIds():
+                            org_agent = self.aq_parent['orgs']._get_ldap_agent()
+                            org_agent.add_to_org(new_org_id, [user_id])
+                        else:
+                            raise
 
                 user_data['organisation'] = new_org_id
                 org_info = agent.org_info(new_org_id)

@@ -1,3 +1,9 @@
+1.1.13 (2014-07-01)
+------------------
+* Bug fix: use alternate agent to avoid insufficient permissions to perform
+  LDAP operations
+  [tiberich #19143]
+
 1.1.12 (2014-07-01)
 ------------------
 * Bug fix: remove user from old org when changing his organisation
