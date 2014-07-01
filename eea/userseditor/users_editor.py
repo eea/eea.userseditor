@@ -259,7 +259,6 @@ class UsersEditor(SimpleItem, PropertyManager):
             country_code = org_info['country']
 
         nrc_roles = get_nrc_roles(agent, user_id)
-        form_data['organisation']
         for nrc_role in nrc_roles:
             nrc_role_info = agent.role_info(nrc_role)
             country_code = nrc_role.split('-')[-1]
@@ -303,17 +302,20 @@ class UsersEditor(SimpleItem, PropertyManager):
             # make a check if user is changing the organisation
             old_info = agent.user_info(user_id)
 
-            if user_data['organisation'] != old_info['organisation']:
+            new_org_id = user_data['organisation']
+            new_org_id_valid = agent.org_exists(new_org_id)
+            old_org_id = old_info['organisation']
+            old_org_id_valid = agent.org_exists(old_org_id)
+
+            if new_org_id != old_org_id:
                 # is this organisation an LDAP organisation id?
-                org_id = user_data['organisation']
-                org_info = None
-                try:
-                    org_info = agent.org_info(org_id)
-                except:
-                    pass
-                else:
-                    user_data['organisation'] = org_info['name']
-                    agent.add_to_org(org_id, [user_id])
+                if old_org_id_valid:
+                    agent.remove_from_org(old_org_id, [user_id])
+                if new_org_id_valid:
+                    agent.add_to_org(new_org_id, [user_id])
+
+                user_data['organisation'] = new_org_id
+                org_info = agent.org_info(new_org_id)
 
                 nrc_roles = get_nrc_roles(agent, user_id)
                 for nrc_role in nrc_roles:
