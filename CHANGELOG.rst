@@ -1,3 +1,6 @@
+1.1.15 (unreleased)
+------------------
+
 1.1.14 (2014-07-01)
 ------------------
 * Bug fix: don't fail when removing user from org if user is not in org
