@@ -1,5 +1,8 @@
-1.1.15 (unreleased)
+1.1.15 (2014-07-02)
 ------------------
+* Bug fix: use the groupware standard_template when Zope is a Naaya groupware
+  application
+  [tiberich #19143]
 
 1.1.14 (2014-07-01)
 ------------------

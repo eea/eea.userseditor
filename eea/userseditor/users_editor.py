@@ -195,8 +195,20 @@ class UsersEditor(SimpleItem, PropertyManager):
 
     def _render_template(self, name, **options):
         tmpl = load_template(name)
+        # Naaya groupware integration. If present, use the standard template
+        # of the current site
+        macro = self.aq_parent.restrictedTraverse('/').get('gw_macro')
+        if macro:
+            try:
+                layout = self.aq_parent.getLayoutTool().getCurrentSkin()
+                main_template = layout.getTemplateById('standard_template')
+            except:
+                main_template = self.aq_parent.restrictedTraverse('standard_template.pt')
+        else:
+            main_template = self.aq_parent.restrictedTraverse('standard_template.pt')
+        main_page_macro = main_template.macros['page']
         options.update({'network_name': NETWORK_NAME})
-        return self._zope2_wrapper(body_html=tmpl(**options))
+        return self._zope2_wrapper(main_page_macro=main_page_macro, body_html=tmpl(**options))
 
     security.declareProtected(view, 'index_html')
     def index_html(self, REQUEST):
