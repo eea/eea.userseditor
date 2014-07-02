@@ -1,3 +1,6 @@
+1.1.17 (unreleased)
+------------------
+
 1.1.16 (2014-07-02)
 ------------------
 * Bug fix: use the organisation membership for a member when showing his organisation
