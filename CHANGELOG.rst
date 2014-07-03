@@ -1,3 +1,6 @@
+1.1.18 (unreleased)
+------------------
+
 1.1.17 (2014-07-03)
 ------------------
 * Bug fix: remove all organisations for a user before changing his organisation
