@@ -240,13 +240,13 @@ class UsersEditor(SimpleItem, PropertyManager):
             form_data = agent.user_info(user_id)
 
         orgs = agent.all_organisations()
-        orgs = [{'id':k, 'text':v['name']} for k,v in orgs.items()]
+        orgs = [{'id':k, 'text':v['name'], 'ldap':True} for k,v in orgs.items()]
 
         user_orgs = list(agent.user_organisations(user_id))
         if not user_orgs:
             org = form_data['organisation']
             if org:
-                orgs.append({'id':org, 'text':org})
+                orgs.append({'id':org, 'text':org, 'ldap':False})
         else:
             org = user_orgs[0]
             org_id = agent._org_id(org)
@@ -255,7 +255,11 @@ class UsersEditor(SimpleItem, PropertyManager):
 
         choices = [('-', '-')]
         for org in orgs:
-            choices.append((org['id'], org['text']))
+            if org['ldap']:
+                label = u"%s (%s)" % (org['text'], org['id'])
+            else:
+                label = org['text']
+            choices.append((org['id'], label))
 
         schema = user_info_schema.clone()
         widget = deform.widget.SelectWidget(values=choices)
@@ -323,13 +327,10 @@ class UsersEditor(SimpleItem, PropertyManager):
 
             if new_org_id != old_org_id:
 
-                if old_org_id_valid:
-                    self._remove_from_org(agent, old_org_id, user_id)
+                self._remove_from_all_orgs(agent, user_id)
 
                 if new_org_id_valid:
                     self._add_to_org(agent, new_org_id, user_id)
-
-                if new_org_id_valid:
                     org_info = agent.org_info(new_org_id)
                 else:
                     org_info = None
@@ -363,21 +364,24 @@ class UsersEditor(SimpleItem, PropertyManager):
             else:
                 raise
 
-    def _remove_from_org(self, agent, org_id, user_id):
-        try:
-            agent.remove_from_org(org_id, [user_id])
-        except ldap.NO_SUCH_ATTRIBUTE:  # user is not in org
-            pass
-        except ldap.INSUFFICIENT_ACCESS:
-            ids = self.aq_parent.objectIds(["Eionet Organisations Editor"])
-            if ids:
-                org_agent = ids[0]._get_ldap_agent(bind=True)
-                try:
-                    org_agent.remove_from_org(org_id, [user_id])
-                except ldap.NO_SUCH_ATTRIBUTE:    #user is not in org
-                    pass
-            else:
-                raise
+    def _remove_from_all_orgs(self, agent, user_id):
+        orgs = agent.user_organisations(user_id)
+        for org_dn in orgs:
+            org_id = agent._org_id(org_dn)
+            try:
+                agent.remove_from_org(org_id, [user_id])
+            except ldap.NO_SUCH_ATTRIBUTE:  # user is not in org
+                pass
+            except ldap.INSUFFICIENT_ACCESS:
+                ids = self.aq_parent.objectIds(["Eionet Organisations Editor"])
+                if ids:
+                    org_agent = ids[0]._get_ldap_agent(bind=True)
+                    try:
+                        org_agent.remove_from_org(org_id, [user_id])
+                    except ldap.NO_SUCH_ATTRIBUTE:    #user is not in org
+                        pass
+                else:
+                    raise
 
     def _send_nfp_nrc_email(self, nrc_role_info, user_info, nfp_info):
         options = {'nrc_role_info':nrc_role_info,
