@@ -1,5 +1,7 @@
-1.1.17 (unreleased)
+1.1.17 (2014-07-03)
 ------------------
+* Bug fix: remove all organisations for a user before changing his organisation
+  [tiberich #19143]
 
 1.1.16 (2014-07-02)
 ------------------
