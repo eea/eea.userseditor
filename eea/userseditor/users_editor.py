@@ -375,7 +375,8 @@ class UsersEditor(SimpleItem, PropertyManager):
             except ldap.INSUFFICIENT_ACCESS:
                 ids = self.aq_parent.objectIds(["Eionet Organisations Editor"])
                 if ids:
-                    org_agent = ids[0]._get_ldap_agent(bind=True)
+                    utility = self.aq_parent[ids[0]]
+                    org_agent = utility._get_ldap_agent(bind=True)
                     try:
                         org_agent.remove_from_org(org_id, [user_id])
                     except ldap.NO_SUCH_ATTRIBUTE:    #user is not in org
