@@ -1,5 +1,8 @@
-1.1.18 (unreleased)
+1.1.18 (2014-07-15)
 ------------------
+* Bug fix: fix case when editing user profile and an Organisation Editor was
+  not found
+  [tiberich #19143]
 
 1.1.17 (2014-07-03)
 ------------------
