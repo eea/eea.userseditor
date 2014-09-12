@@ -1,2 +1,2 @@
 <strong>Roles</strong> <br/>
-<div tal:repeat="data view/entry/data"> - <span tal:content="data/role" /></div>
+<div tal:repeat="role view/roles"> + <span tal:content="role" /></div>

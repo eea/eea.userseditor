@@ -37,6 +37,42 @@ class BaseActionDetails(BrowserView):
         return factories.agent_from_uf(self.context.restrictedTraverse("/acl_users"))
 
 
+class BaseRoleDetails(BaseActionDetails):
+
+    def details(self, entry):
+        roles = [x['role'] for x in entry['data']]
+        self.roles = self.merge(roles)
+        return self.index()
+
+    def merge(self, roles):
+        """ Merge the entries so that the only the leaf roles are displayed
+
+        >>> roles = [
+        ... 'eionet-nfp-mc-dk',
+        ... 'eionet-nfp-mc',
+        ... 'eionet-nfp',
+        ... 'eionet',
+        ... 'eionet-nfp-mc-se',
+        ... 'eionet-nfp-mc',
+        ... 'eionet-nfp',
+        ... 'eionet',
+        ... ]
+        >>> print merge(roles)
+        ['eionet-nfp-mc-dk', 'eionet-nfp-mc-se']
+        """
+        roles = sorted(roles)
+        out = []
+        last = len(roles) - 1
+        for i, role in enumerate(roles):
+            if i == last:
+                out.append(role)
+                break
+            if role not in roles[i+1]:
+                out.append(role)
+
+        return out
+
+
 class BaseOrganisationDetails(object):
 
     @property
@@ -64,14 +100,14 @@ class DisableAccount(BaseActionDetails):
 
 
 class AddToOrg(BaseActionDetails, BaseOrganisationDetails):
-    """ Details for action DISABLE_ACCOUNT
+    """ Details for action ADD_TO_ORG
     """
 
     action_title = "Added to organisation"
 
 
 class RemovedFromOrg(BaseActionDetails, BaseOrganisationDetails):
-    """ Details for action DISABLE_ACCOUNT
+    """ Details for action REMOVED_FROM_ORG
     """
 
     action_title = "Removed from organisation"
@@ -91,72 +127,71 @@ class RemovedPendingFromOrg(BaseActionDetails, BaseOrganisationDetails):
     action_title = "Removed pending from organisation"
 
 
-
-class AddedToRole(BaseActionDetails):
-    """ Details for action DISABLE_ACCOUNT
+class AddedToRole(BaseRoleDetails):
+    """ Details for action ADDED_TO_ROLE
     """
 
     action_title = "Added to role"
 
 
-class RemovedFromRole(BaseActionDetails):
-    """ Details for action DISABLE_ACCOUNT
+class RemovedFromRole(BaseRoleDetails):
+    """ Details for action REMOVED_FROM_ROLE
     """
 
     action_title = "Removed from role"
 
 
 class AddedAsRoleOwner(BaseActionDetails):
-    """ Details for action DISABLE_ACCOUNT
+    """ Details for action ADDED_AS_ROLE_OWNER
     """
 
     action_title = "Added as role owner"
 
 
 class RemovedAsRoleOwner(BaseActionDetails):
-    """ Details for action DISABLE_ACCOUNT
+    """ Details for action REMOVED_AS_ROLE_OWNER
     """
 
     action_title = "Removed from role owner"
 
 
 class AddedAsPermittedPerson(BaseActionDetails):
-    """ Details for action DISABLE_ACCOUNT
+    """ Details for action ADDED_AS_PERMITTED_PERSON
     """
 
     action_title = "Added as permitted person"
 
 
 class RemovedAsPermittedPerson(BaseActionDetails):
-    """ Details for action DISABLE_ACCOUNT
+    """ Details for action REMOVED_AS_PERMITTED_PERSON
     """
 
     action_title = "Removed as permitted person"
 
 
 class SetAsRoleLeader(BaseActionDetails):
-    """ Details for action DISABLE_ACCOUNT
+    """ Details for action SET_AS_ROLE_LEADER
     """
 
     action_title = "Set as role leader"
 
 
 class UnsetAsRoleLeader(BaseActionDetails):
-    """ Details for action DISABLE_ACCOUNT
+    """ Details for action UNSET_AS_ROLE_LEADER
     """
 
     action_title = "Removed as role leader"
 
 
 class SetAsAlternateRoleLeader(BaseActionDetails):
-    """ Details for action DISABLE_ACCOUNT
+    """ Details for action SET_AS_ALTERNATE_ROLE_LEADER
     """
 
     action_title = "Added as alternate role leader"
 
 
 class UnsetAsAlternateRoleLeader(BaseActionDetails):
-    """ Details for action DISABLE_ACCOUNT
+    """ Details for action UNSET_AS_ALTERNATE_ROLE_LEADEg
     """
 
     action_title = "Removed as alternate role leader"
