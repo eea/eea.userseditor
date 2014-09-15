@@ -316,37 +316,38 @@ class UsersEditor(SimpleItem, PropertyManager):
             agent = self._get_ldap_agent(write=True)
             agent.bind_user(user_id, _get_user_password(REQUEST))
 
-            # make a check if user is changing the organisation
-            old_info = agent.user_info(user_id)
+            with agent.new_action():
+                # make a check if user is changing the organisation
+                old_info = agent.user_info(user_id)
 
-            new_org_id = new_info['organisation']
-            old_org_id = old_info['organisation']
+                new_org_id = new_info['organisation']
+                old_org_id = old_info['organisation']
 
-            new_org_id_valid = agent.org_exists(new_org_id)
+                new_org_id_valid = agent.org_exists(new_org_id)
 
-            if new_org_id != old_org_id:
+                if new_org_id != old_org_id:
+                    self._remove_from_all_orgs(agent, user_id)
+                    if new_org_id_valid:
+                        self._add_to_org(agent, new_org_id, user_id)
+                        org_info = agent.org_info(new_org_id)
+                    else:
+                        org_info = None
 
-                self._remove_from_all_orgs(agent, user_id)
+                    nrc_roles = get_nrc_roles(agent, user_id)
+                    for nrc_role in nrc_roles:
+                        nrc_role_info = agent.role_info(nrc_role)
+                        country_code = nrc_role.split('-')[-1]
+                        # if the organisation is not proper for the nrc,
+                        # send an email to all nfps for that country
+                        if not org_info or org_info.get('country') != country_code:
+                            nfps = get_nfps_for_country(agent, country_code)
+                            for nfp_id in nfps:
+                                nfp_info = agent.user_info(nfp_id)
+                                self._send_nfp_nrc_email(
+                                    nrc_role_info, new_info, nfp_info)
 
-                if new_org_id_valid:
-                    self._add_to_org(agent, new_org_id, user_id)
-                    org_info = agent.org_info(new_org_id)
-                else:
-                    org_info = None
+                agent.set_user_info(user_id, new_info)
 
-                nrc_roles = get_nrc_roles(agent, user_id)
-                for nrc_role in nrc_roles:
-                    nrc_role_info = agent.role_info(nrc_role)
-                    country_code = nrc_role.split('-')[-1]
-                    # if the organisation is not proper for the nrc,
-                    # send an email to all nfps for that country
-                    if not org_info or org_info.get('country') != country_code:
-                        nfps = get_nfps_for_country(agent, country_code)
-                        for nfp_id in nfps:
-                            nfp_info = agent.user_info(nfp_id)
-                            self._send_nfp_nrc_email(nrc_role_info, new_info, nfp_info)
-
-            agent.set_user_info(user_id, new_info)
             when = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             _set_session_message(REQUEST, 'message', "Profile saved (%s)" % when)
 
