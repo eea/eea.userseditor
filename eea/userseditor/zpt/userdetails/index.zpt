@@ -1,246 +1,260 @@
-<div id="content" tal:condition="options/multi">
-    <p>You have launched a comparison of user profiles.
-    <br /><br />
-    If the windows don't pop up, please allow window popups in your browser and refresh page.</p>
-    <script type="text/javascript" tal:content="string: var json_uids='${options/multi}'; var base_url='${common/base_url}';"></script>
-    <script type="text/javascript">
+<div>
+    <div id="content" tal:condition="options/multi">
+        <p>You have launched a comparison of user profiles.
+            <br /><br />
+            If the windows don't pop up, please allow window popups in your browser and refresh page.
+        </p>
+        <script type="text/javascript" tal:content="string: var json_uids='${options/multi}'; var base_url='${common/base_url}';"></script>
+        <script type="text/javascript">
 
-        jQuery(document).ready(
+            jQuery(document).ready(
             function(){
-                var users = jQuery.parseJSON(json_uids)['users'];
-                for(var i=0;i<users.length;i++){
-                    window.open(base_url+'/simple_profile?uid='+users[i], users[i],
-                                'width='+(screen.width/users.length-20)+
-                                ',height='+(screen.height-50)+',top=0,left='
-                                +(screen.width/users.length*i)+
-                                ',toolbar=no,status=no,menubar=no,location=no');
+            var users = jQuery.parseJSON(json_uids)['users'];
+            for(var i=0;i<users.length;i++){
+                window.open(base_url+'/simple_profile?uid='+users[i], users[i],
+                'width='+(screen.width/users.length-20)+
+                ',height='+(screen.height-50)+',top=0,left='
+                +(screen.width/users.length*i)+
+                ',toolbar=no,status=no,menubar=no,location=no');
                 }
                 window.close();
-            }
-        );
+                }
+                );
 
-    </script>
-</div>
-<div id="content" tal:condition="not: options/multi">
-    <style>
-    #show_roles {
-        width:300px; 
-        float:right;
-        font-size:12px;
-        text-align:right;
-    }
-    </style>
-
-    <script src="/++resource++jquery.min.js"></script>
-    <script src="/++resource++jquery-ui.min.js"></script>
-
-    <link rel="stylesheet" type="text/css" media="screen"
-          href="/++resource++eea.userseditor-www/jquery-ui-1.9.2.custom.css"/>
-
-    <script type="text/javascript">
-        jQuery(document).ready(
-            function(){
-                jQuery("#datepicker").datepicker();
-            }
-        );
-    </script>
-
-    <div xmlns:foaf="http://xmlns.com/foaf/0.1/"
-    tal:attributes="about string:${common/portal_url}/users/${options/user/uid}" typeof="foaf:Person"
-    tal:define="user options/user;
-                disabled user/status;
-                is_manager common/is_manager;
-                is_authenticated common/is_authenticated;">
-
-        <h1 property="foaf:name">
-            <tal:block content="user/full_name" />
-            <a tal:condition="is_manager"
-                style="background:none"
-                tal:attributes="href string:/eionet_account_tools/users/edit_user?id=${user/uid}">
-                <img src="/++resource++eea.userseditor-www/edit.gif" alt="Edit" />
-            </a>
-        </h1>
-
-        <div class="tip-msg" tal:condition="not: is_authenticated">
-          You are displaying this EIONET User details as anonymous.
-          <br /><br />
-          For more information on account please <a href="/loggedin" title="Login to your account">login</a> first, as access to more detailed information, in addition to name, title and ID, is restricted to authenticated users.
-        </div>
-
-        <div class="figure figure-right" style="clear: both"
-          tal:condition="python:user['jpegPhoto'] and (not disabled or is_manager)">
-            <div class="figure-image">
-              <a tal:attributes="href string:userphoto_jpeg?uid=${user/uid}">
-                <img tal:attributes="src string:${common/base_url}/userphoto_jpeg?uid=${user/uid}" class="mouseclickpop"
-                 alt="photo of person" style="max-width:200px; max-height:150px"/></a>
-            </div>
-        </div>
-
-        <table class="datatable">
-            <tr tal:condition="disabled">
-              <th colspan="2">Deactivated user</th>
-            </tr>
-            <tr tal:condition="python:not disabled or is_manager">
-                <th scope="row" class="scope-row">Title</th>
-                <tal:block condition="user/job_title">
-                    <td tal:content="python: user.get('job_title')" />
-                </tal:block>
-                <tal:block condition="not: user/job_title">
-                    <td><em>No title</em></td>
-                </tal:block>
-            </tr>
-            <tr><th scope="row" class="scope-row">Given name</th>
-                <td tal:content="user/first_name" /></tr>
-            <tr><th scope="row" class="scope-row">Surname</th>
-                <td tal:content="user/last_name" /></tr>
-            <tal:block condition="python:not disabled and is_authenticated or is_manager">
-                <tr tal:condition="disabled">
-                  <td colspan="2"><em>Available to Managers only</em></td>
-                </tr>
-                <tr><th scope="row" class="scope-row">Mail</th>
-                    <td tal:content="user/email" /></tr>
-                <tr><th scope="row" class="scope-row">Telephone</th>
-                    <td tal:content="user/phone" /></tr>
-                <tr><th scope="row" class="scope-row">Mobile phone</th>
-                    <td tal:content="user/mobile" /></tr>
-                <tr><th scope="row" class="scope-row">Fax</th>
-                    <td tal:content="user/fax" /></tr>
-                <tr><th scope="row" class="scope-row">Postal</th>
-                    <td tal:content="user/postal_address" /></tr>
-            </tal:block>
-            <tr><th scope="row" class="scope-row">Userid</th>
-                <td tal:content="user/uid" /></tr>
-            <tal:block condition="user/certificate">
-              <tr><th scope="row" class="scope-row">Authentication</th>
-                <td>
-                  <a tal:attributes="href string:${common/base_url}/usercertificate?uid=${user/uid}">PKI Certificate</a>
-                </td>
-              </tr>
-            </tal:block>
-
-            <tal:block condition="is_manager">
-                <tr tal:condition="not: disabled">
-                  <td colspan="2"><em>Available to Managers only</em></td></tr>
-                <tr><th scope="row" class="scope-row">Created</th>
-                    <td tal:content="user/createTimestamp" /></tr>
-                <tr><th scope="row" class="scope-row">Modified</th>
-                    <td tal:content="user/modifyTimestamp" /></tr>
-            </tal:block>
-        </table>
-
-        <p tal:condition="python: not disabled or is_manager">
-          Linked data URL: <a type="application/rdf+xml"
-          tal:attributes="href string:${common/portal_url}/users/${user/uid}"
-          tal:content="string:${common/portal_url}/users/${user/uid}" />.
-        </p>
-
-        <tal:block condition="python: not disabled and not is_manager">
-            <h2>
-            <form method="GET" action="./user" id="show_roles">
-                <input type="hidden" name="uid" tal:attributes="value string:${user/uid}" />
-                <label for="date_for_roles">At date:</label>
-                <input type="text" name="date_for_roles" id="datepicker" class="hasDatePicker" 
-                    tal:attributes="value python:options['context'].REQUEST.form.get('date_for_roles')" />
-                <input type="submit" value="Submit" />
-            </form>
-            Member of Groups - Eionet Directory Roles</h2>
-            <tal:block condition="options/roles">
-              <table class="account-datatable sub-roles">
-                <thead>
-                  <tr>
-                    <td>
-                      Role ID
-                    </td>
-                    <td>
-                      Role name
-                    </td>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tal:block repeat="role options/roles">
-                    <tr tal:attributes="class python:('even', 'odd')[int(path('repeat/role/odd'))]">
-                      <td tal:content="python: role[0]" nowrap="nowrap" />
-                      <td tal:content="python: role[1]" />
-                    </tr>
-                  </tal:block>
-                </tbody>
-              </table>
-            </tal:block>
-
-            <tal:block condition="not: options/roles">
-                <p>This member does not belong to any Roles.</p>
-            </tal:block>
-            <div class="clear"></div>
-        </tal:block>
-
-
-        <div tal:condition="is_manager">
-
-            <h2>
-            <form method="GET" action="./user" id="show_roles">
-                <input type="hidden" name="uid" tal:attributes="value string:${user/uid}" />
-                <label for="date_for_roles">At date:</label>
-                <input type="text" name="date_for_roles" id="datepicker" class="hasDatePicker" 
-                    tal:attributes="value python:options['context'].REQUEST.form.get('date_for_roles')" />
-                <input type="submit" value="Submit" />
-            </form>
-
-            Member of Groups - Eionet Directory Roles</h2>
-            <tal:block condition="options/roles">
-              <table class="account-datatable sub-roles">
-                <thead>
-                  <tr>
-                    <td>
-                      Role ID
-                    </td>
-                    <td>
-                      Role name
-                    </td>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tal:block repeat="role options/roles">
-                    <tr tal:condition="python: role[0] in options['filtered_roles']"
-                        tal:attributes="class python:('even', 'odd')[int(path('repeat/role/odd'))]">
-                      <td tal:content="python: role[0]" nowrap="nowrap" />
-                      <td tal:content="python: role[1]" />
-                    </tr>
-                  </tal:block>
-                </tbody>
-              </table>
-            </tal:block>
-
-            <tal:block condition="not: options/roles">
-                <p>This member does not belong to any Roles.</p>
-            </tal:block>
-            <div class="clear"></div>
-
-
-            <h2>Account changelog</h2>
-            <table class="datatable account-history" tal:define="context nocall:options/context">
-                <tr>
-                    <th>Date</th>
-                    <th>Action</th>
-                    <th>Author</th>
-                    <th>Details</th>
-                </tr>
-                <tr tal:repeat="entry options/log_entries">
-                    <tal:def define="view nocall:entry/view">
-                        <td tal:content="python:entry['timestamp']" />
-                        <td tal:content="view/action_title" />
-                        <td>
-                            <a href="" 
-                                tal:content="python: view.author(entry)" 
-                                tal:attributes="href string:?uid=${entry/author}">Author</a>
-                        </td>
-                        <td tal:content="structure python: view.details(entry)" ></td>
-                    </tal:def>
-                </tr>
-            </table>
-            <p>NOTE: the changelog may not be complete, older modifications to
-                the account prior to implementation of the CHANGELOG will not
-                be shown here</p>
-        </div>
-
+            </script>
     </div>
-</div>
+    <div id="content" tal:condition="not: options/multi">
+        <style>
+            #show_roles {
+            width:300px; 
+            float:right;
+            font-size:12px;
+            text-align:right;
+            }
+        </style>
+
+        <script src="/++resource++jquery.min.js"></script>
+        <script src="/++resource++jquery-ui.min.js"></script>
+        <script src="/++resource++eea.userseditor-www/pnglib.js"></script>
+        <script src="/++resource++eea.userseditor-www/identicon.js"></script>
+
+        <link rel="stylesheet" type="text/css" media="screen"
+            href="/++resource++eea.userseditor-www/jquery-ui-1.9.2.custom.css"/>
+
+        <script type="text/javascript">
+            jQuery(document).ready(
+                function(){
+                    jQuery("#datepicker").datepicker();
+                    jQuery('.actionid-identicon').each(function(){
+                        var rel = $(this).attr('rel') + '1';
+                        var data = new Identicon(rel, 32).toString();
+                        var img = jQuery("<img height='16' width='16'>").attr('src', 'data:image/png;base64,' + data);
+                        jQuery(this).append(img);
+                    });
+                });
+        </script>
+
+        <div xmlns:foaf="http://xmlns.com/foaf/0.1/"
+            tal:attributes="about string:${common/portal_url}/users/${options/user/uid}" typeof="foaf:Person"
+            tal:define="user options/user;
+            disabled user/status;
+            is_manager common/is_manager;
+            is_authenticated common/is_authenticated;">
+
+            <h1 property="foaf:name">
+                <tal:block content="user/full_name" />
+                <a tal:condition="is_manager"
+                    style="background:none"
+                    tal:attributes="href string:/eionet_account_tools/users/edit_user?id=${user/uid}">
+                    <img src="/++resource++eea.userseditor-www/edit.gif" alt="Edit" />
+                </a>
+            </h1>
+
+            <div class="tip-msg" tal:condition="not: is_authenticated">
+                You are displaying this EIONET User details as anonymous.
+                <br /><br />
+                For more information on account please <a href="/loggedin" title="Login to your account">login</a> first, as access to more detailed information, in addition to name, title and ID, is restricted to authenticated users.
+            </div>
+
+            <div class="figure figure-right" style="clear: both"
+                tal:condition="python:user['jpegPhoto'] and (not disabled or is_manager)">
+                <div class="figure-image">
+                    <a tal:attributes="href string:userphoto_jpeg?uid=${user/uid}">
+                        <img tal:attributes="src string:${common/base_url}/userphoto_jpeg?uid=${user/uid}" class="mouseclickpop"
+                            alt="photo of person" style="max-width:200px; max-height:150px"/></a>
+                </div>
+            </div>
+
+            <table class="datatable">
+                <tr tal:condition="disabled">
+                    <th colspan="2">Deactivated user</th>
+                </tr>
+                <tr tal:condition="python:not disabled or is_manager">
+                    <th scope="row" class="scope-row">Title</th>
+                    <tal:block condition="user/job_title">
+                        <td tal:content="python: user.get('job_title')" />
+                    </tal:block>
+                    <tal:block condition="not: user/job_title">
+                        <td><em>No title</em></td>
+                    </tal:block>
+                </tr>
+                <tr><th scope="row" class="scope-row">Given name</th>
+                    <td tal:content="user/first_name" /></tr>
+                <tr><th scope="row" class="scope-row">Surname</th>
+                    <td tal:content="user/last_name" /></tr>
+                <tal:block condition="python:not disabled and is_authenticated or is_manager">
+                    <tr tal:condition="disabled">
+                        <td colspan="2"><em>Available to Managers only</em></td>
+                    </tr>
+                    <tr><th scope="row" class="scope-row">Mail</th>
+                        <td tal:content="user/email" /></tr>
+                    <tr><th scope="row" class="scope-row">Telephone</th>
+                        <td tal:content="user/phone" /></tr>
+                    <tr><th scope="row" class="scope-row">Mobile phone</th>
+                        <td tal:content="user/mobile" /></tr>
+                    <tr><th scope="row" class="scope-row">Fax</th>
+                        <td tal:content="user/fax" /></tr>
+                    <tr><th scope="row" class="scope-row">Postal</th>
+                        <td tal:content="user/postal_address" /></tr>
+                </tal:block>
+                <tr><th scope="row" class="scope-row">Userid</th>
+                    <td tal:content="user/uid" /></tr>
+                <tal:block condition="user/certificate">
+                    <tr><th scope="row" class="scope-row">Authentication</th>
+                        <td>
+                            <a tal:attributes="href string:${common/base_url}/usercertificate?uid=${user/uid}">PKI Certificate</a>
+                        </td>
+                    </tr>
+                </tal:block>
+
+                <tal:block condition="is_manager">
+                    <tr tal:condition="not: disabled">
+                        <td colspan="2"><em>Available to Managers only</em></td></tr>
+                    <tr><th scope="row" class="scope-row">Created</th>
+                        <td tal:content="user/createTimestamp" /></tr>
+                    <tr><th scope="row" class="scope-row">Modified</th>
+                        <td tal:content="user/modifyTimestamp" /></tr>
+                </tal:block>
+            </table>
+
+            <p tal:condition="python: not disabled or is_manager">
+                Linked data URL: <a type="application/rdf+xml"
+                    tal:attributes="href string:${common/portal_url}/users/${user/uid}"
+                    tal:content="string:${common/portal_url}/users/${user/uid}" />.
+            </p>
+
+            <tal:block condition="python: not disabled and not is_manager">
+                <h2>
+                    <form method="GET" action="./user" id="show_roles">
+                        <input type="hidden" name="uid" tal:attributes="value string:${user/uid}" />
+                        <label for="date_for_roles">At date:</label>
+                        <input type="text" name="date_for_roles" id="datepicker" class="hasDatePicker" 
+                            tal:attributes="value python:options['context'].REQUEST.form.get('date_for_roles')" />
+                        <input type="submit" value="Submit" />
+                    </form>
+                    Member of Groups - Eionet Directory Roles</h2>
+                <tal:block condition="options/roles">
+                    <table class="account-datatable sub-roles">
+                        <thead>
+                            <tr>
+                                <td>
+                                    Role ID
+                                </td>
+                                <td>
+                                    Role name
+                                </td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tal:block repeat="role options/roles">
+                                <tr tal:attributes="class python:('even', 'odd')[int(path('repeat/role/odd'))]">
+                                    <td tal:content="python: role[0]" nowrap="nowrap" />
+                                    <td tal:content="python: role[1]" />
+                                </tr>
+                            </tal:block>
+                        </tbody>
+                    </table>
+                </tal:block>
+
+                <tal:block condition="not: options/roles">
+                    <p>This member does not belong to any Roles.</p>
+                </tal:block>
+                <div class="clear"></div>
+            </tal:block>
+
+
+            <div tal:condition="is_manager">
+
+                <h2>
+                    <form method="GET" action="./user" id="show_roles">
+                        <input type="hidden" name="uid" tal:attributes="value string:${user/uid}" />
+                        <label for="date_for_roles">At date:</label>
+                        <input type="text" name="date_for_roles" id="datepicker" class="hasDatePicker" 
+                            tal:attributes="value python:options['context'].REQUEST.form.get('date_for_roles')" />
+                        <input type="submit" value="Submit" />
+                    </form>
+
+                    Member of Groups - Eionet Directory Roles</h2>
+                <tal:block condition="options/roles">
+                    <table class="account-datatable sub-roles">
+                        <thead>
+                            <tr>
+                                <td>
+                                    Role ID
+                                </td>
+                                <td>
+                                    Role name
+                                </td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tal:block repeat="role options/roles">
+                                <tr tal:condition="python: role[0] in options['filtered_roles']"
+                                    tal:attributes="class python:('even', 'odd')[int(path('repeat/role/odd'))]">
+                                    <td tal:content="python: role[0]" nowrap="nowrap" />
+                                    <td tal:content="python: role[1]" />
+                                </tr>
+                            </tal:block>
+                        </tbody>
+                    </table>
+                </tal:block>
+
+                <tal:block condition="not: options/roles">
+                    <p>This member does not belong to any Roles.</p>
+                </tal:block>
+                <div class="clear"></div>
+
+
+                <h2>Account changelog</h2>
+                <table class="datatable account-history" tal:define="context nocall:options/context">
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Action</th>
+                        <th>Author</th>
+                        <th>Details</th>
+                    </tr>
+                    <tr tal:repeat="entry options/log_entries">
+                        <tal:def define="view nocall:entry/view">
+                            <td>
+                                <div class="actionid-identicon" style="float:left" tal:attributes="rel entry/action_id" tal:condition="entry/action_id | nothing" >
+                                </div>
+                                <span tal:content="python:entry['timestamp']" />
+                            </td>
+                            <td tal:content="view/action_title" />
+                            <td>
+                                <a href="" 
+                                    tal:content="python: view.author(entry)" 
+                                    tal:attributes="href string:?uid=${entry/author}">Author</a>
+                            </td>
+                            <td tal:content="structure python: view.details(entry)" ></td>
+                        </tal:def>
+                    </tr>
+                </table>
+                <p>NOTE: the changelog may not be complete, older modifications to
+                    the account prior to implementation of the CHANGELOG will not
+                    be shown here</p>
+            </div>
+
+        </div>
+    </div>
+    </div>
