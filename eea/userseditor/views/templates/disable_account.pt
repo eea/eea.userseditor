@@ -6,7 +6,7 @@
 
   <div tal:condition="data/roles">
     <strong>Roles</strong> <br/>
-    <div tal:repeat="role data/roles">- <span tal:replace="role" /></div>
+    <div tal:repeat="role python:view.merge(data['roles'])">- <span tal:replace="role" /></div>
   </div>
 
   <div tal:condition="data/roles_owner">

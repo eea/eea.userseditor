@@ -36,15 +36,6 @@ class BaseActionDetails(BrowserView):
     def _get_ldap_agent(self):
         return factories.agent_from_uf(self.context.restrictedTraverse("/acl_users"))
 
-
-class BaseRoleDetails(BaseActionDetails):
-
-    def details(self, entry):
-        roles = [x['role'] for x in entry['data']]
-        #import pdb; pdb.set_trace()
-        self.roles = self.merge(roles)
-        return self.index()
-
     def merge(self, roles):
         """ Merge the entries so that the only the leaf roles are displayed
 
@@ -72,6 +63,14 @@ class BaseRoleDetails(BaseActionDetails):
                 out.append(role)
 
         return out
+
+
+class BaseRoleDetails(BaseActionDetails):
+
+    def details(self, entry):
+        roles = [x['role'] for x in entry['data']]
+        self.roles = self.merge(roles)
+        return self.index()
 
 
 class BaseOrganisationDetails(object):
