@@ -1,2 +1,2 @@
 <strong>Roles</strong> <br/>
-<div tal:repeat="role view/roles"> + <span tal:content="role" /></div>
+<div tal:repeat="role view/roles"> - <span tal:content="role" /></div>
