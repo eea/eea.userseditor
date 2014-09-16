@@ -41,6 +41,7 @@ class BaseRoleDetails(BaseActionDetails):
 
     def details(self, entry):
         roles = [x['role'] for x in entry['data']]
+        #import pdb; pdb.set_trace()
         self.roles = self.merge(roles)
         return self.index()
 
