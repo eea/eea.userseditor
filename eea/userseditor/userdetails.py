@@ -146,7 +146,6 @@ class UserDetails(SimpleItem):
         return user, roles
 
     security.declarePublic("index_html")
-
     def index_html(self, REQUEST):
         """ """
         uid = REQUEST.form.get('uid')
@@ -219,7 +218,6 @@ class UserDetails(SimpleItem):
                                      log_entries=output)
 
     security.declarePublic("simple_profile")
-
     def simple_profile(self, REQUEST):
         """ """
         uid = REQUEST.form.get('uid')
@@ -229,7 +227,6 @@ class UserDetails(SimpleItem):
                                       user=user, roles=roles)
 
     security.declarePublic("userphoto_jpeg")
-
     def userphoto_jpeg(self, REQUEST):
         """ """
         uid = REQUEST.form.get('uid')
@@ -238,10 +235,19 @@ class UserDetails(SimpleItem):
         return agent.get_profile_picture(uid)
 
     security.declarePublic("usercertificate")
-
     def usercertificate(self, REQUEST):
         """ """
         uid = REQUEST.form.get('uid')
         agent = self._get_ldap_agent()
         REQUEST.RESPONSE.setHeader('Content-Type', 'application/pkix-cert')
         return agent.get_certificate(uid)
+
+    security.declarePublic("get_user_orgs")
+    def get_user_orgs(self, user_id=None):
+        """ Convenience method to be used in the /directory/ folder of EIONET
+        """
+        if user_id is None:
+            user_id = self.REQUEST.form.get('uid')
+
+        agent = self._get_ldap_agent()
+        return agent.orgs_for_user(user_id)

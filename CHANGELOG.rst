@@ -1,5 +1,7 @@
-1.1.19 (unreleased)
+1.1.19 (2014-09-19)
 ------------------
+* Added method to retrieve user organisation membership
+  [tiberich #20832]
 
 1.1.18 (2014-07-15)
 ------------------
