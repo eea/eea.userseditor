@@ -1,3 +1,6 @@
+1.1.20 (unreleased)
+------------------
+
 1.1.19 (2014-09-19)
 ------------------
 * Added method to retrieve user organisation membership
