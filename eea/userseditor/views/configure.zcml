@@ -19,6 +19,14 @@
         />
 
     <browser:page
+        name="details_RESET_ACCOUNT"
+        for="*"
+        permission="zope.Public"
+        class=".changelog.ResetAccount"
+        template="templates/reset_account.pt"
+        />
+
+    <browser:page
         name="details_ADD_TO_ORG"
         for="*"
         permission="zope.Public"

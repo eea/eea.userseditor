@@ -1,0 +1,16 @@
+<div tal:repeat="data view/entry/data">
+  <div tal:condition="data/roles">
+    <strong>Roles</strong> <br/>
+    <div tal:repeat="role python:view.merge(data['roles'])">- <span tal:replace="role" /></div>
+  </div>
+
+  <div tal:condition="data/roles_owner">
+    <strong>Owner of roles</strong> <br/>
+    <div tal:repeat="role data/roles_owner">- <span tal:replace="role" /></div>
+  </div>
+
+  <div tal:condition="data/roles_permittedPerson">
+    <strong>Roles as permitted person</strong> <br/>
+    <div tal:repeat="role data/roles_permittedPerson">- <span tal:replace="role" /></div>
+  </div>
+</div>

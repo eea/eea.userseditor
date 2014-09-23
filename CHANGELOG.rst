@@ -1,5 +1,7 @@
 1.1.20 (unreleased)
 ------------------
+* Feature: added RESET_ACCOUNT view for the changelog
+  [tiberich #9164]
 
 1.1.19 (2014-09-19)
 ------------------

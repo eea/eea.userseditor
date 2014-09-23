@@ -99,6 +99,13 @@ class DisableAccount(BaseActionDetails):
     action_title = "Disabled account"
 
 
+class ResetAccount(BaseActionDetails):
+    """ Details for action RESET_ACCOUNT
+    """
+
+    action_title = "User account reseted (roles deleted)"
+
+
 class AddToOrg(BaseActionDetails, BaseOrganisationDetails):
     """ Details for action ADD_TO_ORG
     """
