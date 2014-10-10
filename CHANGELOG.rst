@@ -1,3 +1,6 @@
+1.1.22 (unreleased)
+------------------
+
 1.1.21 (2014-10-10)
 ------------------
 * Bug fix: removed the visual icon ids, replaced them with some simple arrows
