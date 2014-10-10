@@ -1,5 +1,7 @@
-1.1.21 (unreleased)
+1.1.21 (2014-10-10)
 ------------------
+* Bug fix: removed the visual icon ids, replaced them with some simple arrows
+  [tiberich #20422]
 
 1.1.20 (2014-09-24)
 ------------------

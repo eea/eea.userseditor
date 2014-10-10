@@ -1,8 +1,7 @@
 <div>
     <style>
-        .actionid-identicon {
-            float:left;
-            margin-right:0.4em;
+        .actionid {
+            font-size:1.6em;
         }
     </style>
     <div id="content" tal:condition="options/multi">
@@ -41,8 +40,6 @@
 
         <script src="/++resource++jquery.min.js"></script>
         <script src="/++resource++jquery-ui.min.js"></script>
-        <script src="/++resource++eea.userseditor-www/pnglib.js"></script>
-        <script src="/++resource++eea.userseditor-www/identicon.js"></script>
 
         <link rel="stylesheet" type="text/css" media="screen"
             href="/++resource++eea.userseditor-www/jquery-ui-1.9.2.custom.css"/>
@@ -235,18 +232,19 @@
 
 
                 <h2>Account changelog</h2>
-                <table class="datatable account-history" tal:define="context nocall:options/context">
+                <table class="datatable account-history" tal:define="context nocall:options/context; entries options/log_entries">
                     <tr>
                         <th>Timestamp</th>
                         <th>Action</th>
                         <th>Author</th>
                         <th>Details</th>
                     </tr>
-                    <tr tal:repeat="entry options/log_entries">
+                    <tr tal:repeat="entry entries">
                         <tal:def define="view nocall:entry/view">
-                            <td>
-                                <div class="actionid-identicon" tal:attributes="rel entry/action_id" tal:condition="entry/action_id | nothing" >
-                                </div>
+                            <td tal:define="action_id entry/action_id | nothing; index repeat/entry/index;
+                                show_link_with_previous python:index and action_id and (action_id == entries[index-1]['action_id'])">
+                                <span class="actionid" tal:condition="show_link_with_previous">&#8627;</span>
+                                <span class="actionid" tal:condition="not: show_link_with_previous">&#8227;</span>
                                 <span tal:content="python:entry['timestamp']" />
                             </td>
                             <td tal:content="view/action_title" />
