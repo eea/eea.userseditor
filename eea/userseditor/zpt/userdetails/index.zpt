@@ -2,6 +2,10 @@
     <style>
         .actionid {
             font-size:1.6em;
+            display:block;
+            float:left;
+            margin-right: 6px;
+            margin-top:-4px;
         }
     </style>
     <div id="content" tal:condition="options/multi">

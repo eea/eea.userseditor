@@ -1,5 +1,7 @@
 1.1.22 (unreleased)
 ------------------
+* Bug fix: lineup arrows indicators in changelog with the rest of the text
+  [tiberich #20422]
 
 1.1.21 (2014-10-10)
 ------------------
