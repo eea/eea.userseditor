@@ -52,15 +52,6 @@
             jQuery(document).ready(
                 function(){
                     jQuery("#datepicker").datepicker();
-                    jQuery('.actionid-identicon').each(function(){
-                        var rel = $(this).attr('rel') + '1';
-                        var data = new Identicon(rel, 32).toString();
-                        var img = jQuery("<img height='16' width='16'>").
-                            attr('src', 'data:image/png;base64,' + data).
-                            attr('alt', rel).
-                            attr('title', rel);
-                        jQuery(this).append(img);
-                    });
                 });
         </script>
 
