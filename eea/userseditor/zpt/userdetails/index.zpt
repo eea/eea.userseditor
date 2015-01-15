@@ -58,7 +58,7 @@
         <div xmlns:foaf="http://xmlns.com/foaf/0.1/"
             tal:attributes="about string:${common/portal_url}/users/${options/user/uid}" typeof="foaf:Person"
             tal:define="user options/user;
-            disabled user/status;
+            disabled python:user.get('status') == 'disabled';
             is_manager common/is_manager;
             is_authenticated common/is_authenticated;">
 

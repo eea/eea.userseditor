@@ -1,7 +1,9 @@
-1.1.22 (unreleased)
+1.1.22 (2015-01-15)
 ------------------
 * Bug fix: lineup arrows indicators in changelog with the rest of the text
   [tiberich #20422]
+* Bug fix: don't show a user as disabled if he's not really disabled
+  [tiberich #22487]
 
 1.1.21 (2014-10-10)
 ------------------
