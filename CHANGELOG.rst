@@ -1,3 +1,6 @@
+1.1.23 (unreleased)
+------------------
+
 1.1.22 (2015-01-15)
 ------------------
 * Bug fix: lineup arrows indicators in changelog with the rest of the text
