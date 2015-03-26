@@ -125,14 +125,18 @@ class UserDetails(SimpleItem):
     def __init__(self):
         super(UserDetails, self).__init__()
 
-    def _get_ldap_agent(self):
-        agent = factories.agent_from_uf(self.restrictedTraverse("/acl_users"))
+    def _get_ldap_agent(self, bind=False):
+        agent = factories.agent_from_uf(
+            self.restrictedTraverse("/acl_users"),
+            bind=bind
+        )
         agent._author = logged_in_user(self.REQUEST)
         return agent
 
     def _prepare_user_page(self, uid):
         """Shared by index_html and simple_profile"""
-        agent = self._get_ldap_agent()
+        is_auth = _is_authenticated(self.REQUEST)
+        agent = self._get_ldap_agent(bind=is_auth)
         ldap_roles = sorted(agent.member_roles_info('user',
                                                     uid,
                                                     ('description',)))
@@ -159,7 +163,9 @@ class UserDetails(SimpleItem):
             multi = None
             user, roles = self._prepare_user_page(uid)
 
-        agent = self._get_ldap_agent()
+        is_auth = _is_authenticated(REQUEST)
+        agent = self._get_ldap_agent(bind=is_auth)
+
         log_entries = list(reversed(agent._get_metadata(uid)))
         VIEWS = {}
         filtered_roles = set([info[0] for info in roles])   # + owner_roles)
