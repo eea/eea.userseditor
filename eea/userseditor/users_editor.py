@@ -1,13 +1,15 @@
-from eea.ldapadmin.nfp_nrc import get_nrc_roles, get_nfps_for_country
 from AccessControl import ClassSecurityInfo
 from AccessControl.Permissions import view
+from AccessControl.SecurityManagement import getSecurityManager
 from App.class_init import InitializeClass
 from App.config import getConfiguration
 from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
+from Products.LDAPUserFolder.LDAPUser import LDAPUser
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from datetime import datetime
 from eea import usersdb
+from eea.ldapadmin.nfp_nrc import get_nrc_roles, get_nfps_for_country
 from email.mime.text import MIMEText
 from image_processor import scale_to
 from ldap import INSUFFICIENT_ACCESS
@@ -15,8 +17,8 @@ from persistent.mapping import PersistentMapping
 from zope.component import getUtility
 from zope.component.interfaces import ComponentLookupError
 from zope.sendmail.interfaces import IMailDelivery
-import ldap
 import deform
+import ldap
 import logging
 
 
@@ -176,7 +178,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         self.title = title
         self.ldap_server = ldap_server
 
-    def _get_ldap_agent(self, write=False):
+    def _get_ldap_agent(self, bind=False, write=False):
         #return usersdb.UsersDB(ldap_server=self.ldap_server)
 
         # temporary fix while CIRCA is still online
@@ -189,6 +191,17 @@ class UsersEditor(SimpleItem, PropertyManager):
         else:
             agent = current_agent
         agent._author = logged_in_user(self.REQUEST)
+        if bind == True:
+            user = getSecurityManager().getUser()
+            if isinstance(user, LDAPUser):
+                user_dn = user.getUserDN()
+                user_pwd = user._getPassword()
+                if not user_pwd or user_pwd == 'undef':
+                    # This user object did not result from a login
+                    user_dn = user_pwd = ''
+                else:
+                    agent.perform_bind(user_dn, user_pwd)
+
         return agent
 
     _zope2_wrapper = PageTemplateFile('zpt/zope2_wrapper.zpt', globals())
@@ -217,7 +230,7 @@ class UsersEditor(SimpleItem, PropertyManager):
             'base_url': self.absolute_url(),
         }
         if _is_logged_in(REQUEST):
-            agent = self._get_ldap_agent()
+            agent = self._get_ldap_agent(bind=True)
             user_id = _get_user_id(REQUEST)
             options['user_info'] = agent.user_info(user_id)
         else:
@@ -231,7 +244,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         if not _is_logged_in(REQUEST):
             return REQUEST.RESPONSE.redirect(self.absolute_url() + '/')
 
-        agent = self._get_ldap_agent()
+        agent = self._get_ldap_agent(bind=True)
         user_id = _get_user_id(REQUEST)
 
         errors = _session_pop(REQUEST, SESSION_FORM_ERRORS, {})
@@ -313,7 +326,7 @@ class UsersEditor(SimpleItem, PropertyManager):
             msg = u"Please correct the errors below and try again."
             _set_session_message(REQUEST, 'error', msg)
         else:
-            agent = self._get_ldap_agent(write=True)
+            agent = self._get_ldap_agent(bind=True, write=True)
             agent.bind_user(user_id, _get_user_password(REQUEST))
 
             with agent.new_action():
@@ -423,7 +436,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         """ view """
         form = REQUEST.form
         user_id = _get_user_id(REQUEST)
-        agent = self._get_ldap_agent(write=True)
+        agent = self._get_ldap_agent(bind=True, write=True)
         user_info = agent.user_info(user_id)
 
         if form['new_password'] != form['new_password_confirm']:
@@ -484,7 +497,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         if not _is_logged_in(REQUEST):
             return REQUEST.RESPONSE.redirect(self.absolute_url() + '/')
         user_id = _get_user_id(REQUEST)
-        agent = self._get_ldap_agent()
+        agent = self._get_ldap_agent(bind=True)
 
         if agent.get_profile_picture(user_id):
             has_image = True
@@ -506,7 +519,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         if image_file:
             picture_data = image_file.read()
             user_id = _get_user_id(REQUEST)
-            agent = self._get_ldap_agent(write=True)
+            agent = self._get_ldap_agent(bind=True, write=True)
             try:
                 password = _get_user_password(REQUEST)
                 agent.bind_user(user_id, password)
@@ -535,7 +548,7 @@ class UsersEditor(SimpleItem, PropertyManager):
 
         """
         user_id = _get_user_id(REQUEST)
-        agent = self._get_ldap_agent()
+        agent = self._get_ldap_agent(bind=True)
         photo = agent.get_profile_picture(user_id)
         REQUEST.RESPONSE.setHeader('Content-Type', 'image/jpeg')
         return photo
@@ -544,7 +557,7 @@ class UsersEditor(SimpleItem, PropertyManager):
     def remove_picture(self, REQUEST):
         """ Removes existing profile picture for loggedin user """
         user_id = _get_user_id(REQUEST)
-        agent = self._get_ldap_agent(write=True)
+        agent = self._get_ldap_agent(bind=True, write=True)
         try:
             password = _get_user_password(REQUEST)
             agent.bind_user(user_id, password)
