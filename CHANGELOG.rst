@@ -1,5 +1,7 @@
-1.1.23 (unreleased)
+1.1.23 (2015-03-30)
 ------------------
+* Change: use bind=True in operations to allow retrieving the email address
+  [tiberich #24362]
 
 1.1.22 (2015-01-15)
 ------------------
