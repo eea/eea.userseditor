@@ -1,3 +1,6 @@
+1.1.24 (unreleased)
+------------------
+
 1.1.23 (2015-03-30)
 ------------------
 * Change: use bind=True in operations to allow retrieving the email address
