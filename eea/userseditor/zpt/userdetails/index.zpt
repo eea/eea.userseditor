@@ -59,12 +59,12 @@
             tal:attributes="about string:${common/portal_url}/users/${options/user/uid}" typeof="foaf:Person"
             tal:define="user options/user;
             disabled python:user.get('status') == 'disabled';
-            is_manager common/is_manager;
+            can_edit_users common/can_edit_users;
             is_authenticated common/is_authenticated;">
 
             <h1 property="foaf:name">
                 <tal:block content="user/full_name" />
-                <a tal:condition="is_manager"
+                <a tal:condition="can_edit_users"
                     style="background:none"
                     tal:attributes="href string:/eionet_account_tools/users/edit_user?id=${user/uid}">
                     <img src="/++resource++eea.userseditor-www/edit.gif" alt="Edit" />
@@ -78,7 +78,7 @@
             </div>
 
             <div class="figure figure-right" style="clear: both"
-                tal:condition="python:user['jpegPhoto'] and (not disabled or is_manager)">
+                tal:condition="python:user['jpegPhoto'] and (not disabled or can_edit_users)">
                 <div class="figure-image">
                     <a tal:attributes="href string:userphoto_jpeg?uid=${user/uid}">
                         <img tal:attributes="src string:${common/base_url}/userphoto_jpeg?uid=${user/uid}" class="mouseclickpop"
@@ -90,7 +90,7 @@
                 <tr tal:condition="disabled">
                     <th colspan="2">Deactivated user</th>
                 </tr>
-                <tr tal:condition="python:not disabled or is_manager">
+                <tr tal:condition="python:not disabled or can_edit_users">
                     <th scope="row" class="scope-row">Title</th>
                     <tal:block condition="user/job_title">
                         <td tal:content="python: user.get('job_title')" />
@@ -103,7 +103,7 @@
                     <td tal:content="user/first_name" /></tr>
                 <tr><th scope="row" class="scope-row">Surname</th>
                     <td tal:content="user/last_name" /></tr>
-                <tal:block condition="python:not disabled and is_authenticated or is_manager">
+                <tal:block condition="python:not disabled and is_authenticated or can_edit_users">
                     <tr tal:condition="disabled">
                         <td colspan="2"><em>Available to Managers only</em></td>
                     </tr>
@@ -128,7 +128,7 @@
                     </tr>
                 </tal:block>
 
-                <tal:block condition="is_manager">
+                <tal:block condition="can_edit_users">
                     <tr tal:condition="not: disabled">
                         <td colspan="2"><em>Available to Managers only</em></td></tr>
                     <tr><th scope="row" class="scope-row">Created</th>
@@ -138,13 +138,13 @@
                 </tal:block>
             </table>
 
-            <p tal:condition="python: not disabled or is_manager">
+            <p tal:condition="python: not disabled or can_edit_users">
                 Linked data URL: <a type="application/rdf+xml"
                     tal:attributes="href string:${common/portal_url}/users/${user/uid}"
                     tal:content="string:${common/portal_url}/users/${user/uid}" />.
             </p>
 
-            <tal:block condition="python: not disabled and not is_manager">
+            <tal:block condition="python: not disabled and not can_edit_users">
                 <h2>
                     <form method="GET" action="./user" id="show_roles">
                         <input type="hidden" name="uid" tal:attributes="value string:${user/uid}" />
@@ -184,7 +184,7 @@
             </tal:block>
 
 
-            <div tal:condition="is_manager">
+            <div tal:condition="can_edit_users">
 
                 <h2>
                     <form method="GET" action="./user" id="show_roles">

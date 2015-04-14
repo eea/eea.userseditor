@@ -8,12 +8,12 @@
     <body>
         <div id="content" tal:define="user options/user;
                                       disabled user/status;
-                                      is_manager common/is_manager;
+                                      can_edit_users common/can_edit_users;
                                       is_authenticated common/is_authenticated;">
             <h1 tal:content="user/full_name"></h1>
 
             <table class="datatable">
-                <tr tal:condition="python:not disabled or is_manager">
+                <tr tal:condition="python:not disabled or can_edit_users">
                     <th scope="row" class="scope-row">Title</th>
                     <tal:block condition="user/job_title">
                         <td tal:content="python: user.get('job_title')" />
@@ -26,7 +26,7 @@
                     <td tal:content="user/first_name" /></tr>
                 <tr><th scope="row" class="scope-row">Surname</th>
                     <td tal:content="user/last_name" /></tr>
-                <tal:block condition="python:not disabled and is_authenticated or is_manager">
+                <tal:block condition="python:not disabled and is_authenticated or can_edit_users">
                     <tr tal:condition="disabled">
                       <td colspan="2"><em>Available to Managers only</em></td>
                     </tr>
@@ -51,7 +51,7 @@
                     </tr>
                 </tal:block>
 
-                <tal:block condition="is_manager">
+                <tal:block condition="can_edit_users">
                     <tr tal:condition="not: disabled">
                         <td colspan="2"><em>Available to Managers only</em></td>
                     </tr>

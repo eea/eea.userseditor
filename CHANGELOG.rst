@@ -1,5 +1,7 @@
 1.1.24 (unreleased)
 ------------------
+* is_manager replaced by can_edit_users, bound to permission, not role
+  [dumitval]
 
 1.1.23 (2015-03-30)
 ------------------

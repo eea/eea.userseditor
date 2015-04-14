@@ -12,6 +12,7 @@ import logging
 
 cfg = getConfiguration()
 NETWORK_NAME = getattr(cfg, 'environment', {}).get('NETWORK_NAME', 'EIONET')
+eionet_edit_users = 'Eionet edit users'
 
 log = logging.getLogger(__name__)
 
@@ -66,9 +67,11 @@ class TemplateRenderer(Implicit):
                 layout = self.aq_parent.getLayoutTool().getCurrentSkin()
                 main_template = layout.getTemplateById('standard_template')
             except:
-                main_template = self.aq_parent.restrictedTraverse('standard_template.pt')
+                main_template = self.aq_parent.restrictedTraverse(
+                    'standard_template.pt')
         else:
-            main_template = self.aq_parent.restrictedTraverse('standard_template.pt')
+            main_template = self.aq_parent.restrictedTraverse(
+                'standard_template.pt')
         main_page_macro = main_template.macros['page']
         return zope2_tmpl(main_page_macro=main_page_macro, body_html=body_html)
 
@@ -92,9 +95,9 @@ class CommonTemplateLogic(object):
     def is_authenticated(self):
         return _is_authenticated(self._get_request())
 
-    def is_manager(self):
-        return ('Manager' in
-                self._get_request().AUTHENTICATED_USER.getRoles())
+    def can_edit_users(self):
+        user = self.REQUEST.AUTHENTICATED_USER
+        return bool(user.has_permission(eionet_edit_users, self))
 
     @property
     def macros(self):
@@ -150,6 +153,7 @@ class UserDetails(SimpleItem):
         return user, roles
 
     security.declarePublic("index_html")
+
     def index_html(self, REQUEST):
         """ """
         uid = REQUEST.form.get('uid')
@@ -224,6 +228,7 @@ class UserDetails(SimpleItem):
                                      log_entries=output)
 
     security.declarePublic("simple_profile")
+
     def simple_profile(self, REQUEST):
         """ """
         uid = REQUEST.form.get('uid')
@@ -233,6 +238,7 @@ class UserDetails(SimpleItem):
                                       user=user, roles=roles)
 
     security.declarePublic("userphoto_jpeg")
+
     def userphoto_jpeg(self, REQUEST):
         """ """
         uid = REQUEST.form.get('uid')
@@ -241,6 +247,7 @@ class UserDetails(SimpleItem):
         return agent.get_profile_picture(uid)
 
     security.declarePublic("usercertificate")
+
     def usercertificate(self, REQUEST):
         """ """
         uid = REQUEST.form.get('uid')
@@ -249,6 +256,7 @@ class UserDetails(SimpleItem):
         return agent.get_certificate(uid)
 
     security.declarePublic("get_user_orgs")
+
     def get_user_orgs(self, user_id=None):
         """ Convenience method to be used in the /directory/ folder of EIONET
         """
