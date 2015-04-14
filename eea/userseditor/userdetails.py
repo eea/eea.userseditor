@@ -96,8 +96,8 @@ class CommonTemplateLogic(object):
         return _is_authenticated(self._get_request())
 
     def can_edit_users(self):
-        user = self.REQUEST.AUTHENTICATED_USER
-        return bool(user.has_permission(eionet_edit_users, self))
+        user = self.context.REQUEST.AUTHENTICATED_USER
+        return bool(user.has_permission(eionet_edit_users, self.context))
 
     @property
     def macros(self):
