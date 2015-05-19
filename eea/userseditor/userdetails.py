@@ -170,7 +170,8 @@ class UserDetails(SimpleItem):
         is_auth = _is_authenticated(REQUEST)
         agent = self._get_ldap_agent(bind=is_auth)
 
-        log_entries = list(reversed(agent._get_metadata(uid)))
+        user_dn = agent._user_dn(uid)
+        log_entries = list(reversed(agent._get_metadata(user_dn)))
         VIEWS = {}
         filtered_roles = set([info[0] for info in roles])   # + owner_roles)
         if date_for_roles:

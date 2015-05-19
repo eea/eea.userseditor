@@ -1,5 +1,7 @@
-1.1.25 (unreleased)
+1.1.25 (2015-05-19)
 ------------------
+* Bug fix: call agent._get_metadata with userdn, not user id
+  [tiberich]
 
 1.1.24 (2015-04-14)
 ------------------
