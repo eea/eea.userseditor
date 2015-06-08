@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='eea.userseditor',
-      version='1.1.26',
+      version='1.1.27',
       author='Eau de Web',
       author_email='office@eaudeweb.ro',
       packages=find_packages(),
