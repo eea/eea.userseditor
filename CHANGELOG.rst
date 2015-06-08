@@ -1,5 +1,7 @@
 1.1.26 (unreleased)
 ------------------
+* Bug fix: fixed user profile editor for missing organisation field
+  [tiberich #26247]
 
 1.1.25 (2015-05-19)
 ------------------

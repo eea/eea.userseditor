@@ -257,7 +257,7 @@ class UsersEditor(SimpleItem, PropertyManager):
 
         user_orgs = list(agent.user_organisations(user_id))
         if not user_orgs:
-            org = form_data['organisation']
+            org = form_data.get('organisation')
             if org:
                 orgs.append({'id':org, 'text':org, 'ldap':False})
         else:
