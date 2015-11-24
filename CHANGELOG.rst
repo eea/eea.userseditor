@@ -1,5 +1,7 @@
 1.1.27 (unreleased)
 ------------------
+* fix crash in user details when organisation from user's history was
+  deleted [dumitval]
 
 1.1.26 (2015-06-08)
 ------------------

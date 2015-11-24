@@ -1,2 +1,4 @@
-<div tal:content="view/organisation" />
-
+<tal:block define="org view/organisation">
+  <div tal:condition="org" tal:content="view/organisation" />
+    <div tal:condition="not:org" tal:content="string:${view/organisation_id} (since then deleted)" />
+</tal:block>

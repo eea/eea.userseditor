@@ -8,8 +8,8 @@ class IActionDetails(Interface):
     """
 
     action_title = Attribute("Human readable title for this action")
-    author       = Attribute("Author of changes, in html format")
-    details      = Attribute("Action details in html format")
+    author = Attribute("Author of changes, in html format")
+    details = Attribute("Action details in html format")
 
 
 class BaseActionDetails(BrowserView):
@@ -34,7 +34,8 @@ class BaseActionDetails(BrowserView):
         return u"%s (%s)" % (user_info['full_name'], entry['author'])
 
     def _get_ldap_agent(self):
-        return factories.agent_from_uf(self.context.restrictedTraverse("/acl_users"))
+        return factories.agent_from_uf(
+            self.context.restrictedTraverse("/acl_users"))
 
     def merge(self, roles):
         """ Merge the entries so that the only the leaf roles are displayed
@@ -83,6 +84,11 @@ class BaseOrganisationDetails(object):
                 return self._get_ldap_agent().org_info(org)['name']
 
         return ""
+
+    @property
+    def organisation_id(self):
+        for entry in self.entry['data']:
+            return entry.get('organisation')
 
 
 class EnableAccount(BaseActionDetails):
