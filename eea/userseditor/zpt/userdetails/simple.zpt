@@ -26,10 +26,14 @@
                     <td tal:content="user/first_name" /></tr>
                 <tr><th scope="row" class="scope-row">Surname</th>
                     <td tal:content="user/last_name" /></tr>
+                <tr><th scope="row" class="scope-row">Organisation</th>
+                    <td tal:content="user/organisation" /></tr>
                 <tal:block condition="python:not disabled and is_authenticated or can_edit_users">
                     <tr tal:condition="disabled">
                       <td colspan="2"><em>Available to Managers only</em></td>
                     </tr>
+                    <tr><th scope="row" class="scope-row">Department</th>
+                        <td tal:content="user/department" /></tr>
                     <tr><th scope="row" class="scope-row">Mail</th>
                         <td tal:content="user/email" /></tr>
                     <tr><th scope="row" class="scope-row">Telephone</th>

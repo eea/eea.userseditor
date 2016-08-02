@@ -1,5 +1,6 @@
 1.1.28 (unreleased)
 ------------------
+* add Organisation and Department to the user details page [dumitval]
 
 1.1.27 (2015-11-24)
 ------------------
