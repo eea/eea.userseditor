@@ -8,5 +8,5 @@ setup(name='eea.userseditor',
       include_package_data=True,
       platforms=['OS Independent'],
       zip_safe=False,
-      install_requires=['eea.usersdb>=1.3.32', 'deform', 'phonenumbers'],
+      install_requires=['eea.usersdb>=1.3.33', 'deform', 'phonenumbers'],
       )
