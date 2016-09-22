@@ -104,7 +104,18 @@
                 <tr><th scope="row" class="scope-row">Surname</th>
                     <td tal:content="user/last_name" /></tr>
                 <tr><th scope="row" class="scope-row">Organisation</th>
-                    <td tal:content="user/organisation" /></tr>
+                  <td>
+                    <tal:block condition="python:user['organisation_title'] and can_edit_users">
+                      <a tal:content="user/organisation_title"
+                        tal:attributes="href string:http://eionet.europa.eu/eionet_account_tools/organisations/organisation?id=${user/organisation}" />
+                      <tal:block content="string:(${user/organisation})" />
+                    </tal:block>
+                    <tal:block condition="python:user['organisation_title'] and not can_edit_users"
+                    content="string:${user/organisation_title} (${user/organisation})" />
+                    <tal:block condition="not:user/organisation_title"
+                      tal:content="user/organisation" />
+                  </td>
+                </tr>
                 <tal:block condition="python:not disabled and is_authenticated or can_edit_users">
                     <tr tal:condition="disabled">
                         <td colspan="2"><em>Available to Managers only</em></td>

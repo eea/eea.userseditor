@@ -150,6 +150,13 @@ class UserDetails(SimpleItem):
         user = agent.user_info(uid)
         user['jpegPhoto'] = agent.get_profile_picture(uid)
         user['certificate'] = agent.get_certificate(uid)
+        if user['organisation']:
+            if user['organisation'] == 'eea':
+                user['organisation'] = 'eu_eea'
+            user['organisation_title'] = agent.org_info(
+                user['organisation'])['name']
+        else:
+            user['organisation_title'] = ''
         return user, roles
 
     security.declarePublic("index_html")
