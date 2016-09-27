@@ -253,13 +253,15 @@ class UsersEditor(SimpleItem, PropertyManager):
             form_data = agent.user_info(user_id)
 
         orgs = agent.all_organisations()
-        orgs = [{'id':k, 'text':v['name'], 'ldap':True} for k,v in orgs.items()]
+        orgs = [{'id':k, 'text':v['name'], 'text_native':v['name_native'],
+                 'ldap':True} for k,v in orgs.items()]
 
         user_orgs = list(agent.user_organisations(user_id))
         if not user_orgs:
             org = form_data.get('organisation')
             if org:
-                orgs.append({'id':org, 'text':org, 'ldap':False})
+                orgs.append({'id':org, 'text':org, 'text_native':'',
+                             'ldap':False})
         else:
             org = user_orgs[0]
             org_id = agent._org_id(org)
@@ -269,7 +271,11 @@ class UsersEditor(SimpleItem, PropertyManager):
         choices = [('-', '-')]
         for org in orgs:
             if org['ldap']:
-                label = u"%s (%s)" % (org['text'], org['id'])
+                if org['text_native']:
+                    label = u"%s (%s, %s)" % (org['text'], org['text_native'],
+                                              org['id'])
+                else:
+                    label = u"%s (%s)" % (org['text'], org['id'])
             else:
                 label = org['text']
             choices.append((org['id'], label))

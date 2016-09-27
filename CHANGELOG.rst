@@ -1,6 +1,8 @@
 1.1.28 (unreleased)
 ------------------
-* add Organisation (title if valid link available)
+* add organisation title in national language to the organisation
+  selection list [dumitval]
+* add Organisation title (if valid link available)
   and Department to the user details page [dumitval]
 
 1.1.27 (2015-11-24)
