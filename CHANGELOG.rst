@@ -1,4 +1,7 @@
-1.1.28 (unreleased)
+1.1.29 ()
+------------------
+
+1.1.28 (2016-10-03)
 ------------------
 * add organisation title in national language to the organisation
   selection list [dumitval]
