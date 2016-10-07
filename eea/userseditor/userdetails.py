@@ -175,6 +175,8 @@ class UserDetails(SimpleItem):
             user, roles = self._prepare_user_page(uid)
 
         is_auth = _is_authenticated(REQUEST)
+        # we can only connect to ldap with bind=True if we have an
+        # authenticated user
         agent = self._get_ldap_agent(bind=is_auth)
 
         user_dn = agent._user_dn(uid)
@@ -214,7 +216,7 @@ class UserDetails(SimpleItem):
         for entry in log_entries:
             if output:
                 last_entry = output[-1]
-                check = ['author', 'action', 'timestamp']
+                check = ['author', 'action']
                 flag = True
                 for k in check:
                     if last_entry[k] != entry[k]:
@@ -229,11 +231,21 @@ class UserDetails(SimpleItem):
                 entry['data'] = [entry['data']]
                 output.append(entry)
 
-        return self._render_template("zpt/userdetails/index.zpt",
-                                     context=self,
-                                     filtered_roles=filtered_roles,
-                                     user=user, roles=roles, multi=multi,
-                                     log_entries=output)
+        removed_roles = []
+        if user.get('status') == 'disabled':
+            # process log entries to list the roles the user had before
+            # being disabled
+            for entry in log_entries:
+                if entry['action'] == 'DISABLE_ACCOUNT':
+                    removed_roles = [
+                        (role, agent.role_info(role)['description'])
+                        for role in entry['data'][0]['roles']]
+                    break
+
+        return self._render_template(
+            "zpt/userdetails/index.zpt", context=self,
+            filtered_roles=filtered_roles, user=user, roles=roles,
+            removed_roles=removed_roles, multi=multi, log_entries=output)
 
     security.declarePublic("simple_profile")
 

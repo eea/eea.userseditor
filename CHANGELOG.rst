@@ -1,5 +1,6 @@
-1.1.29 ()
+1.1.29 (unreleased)
 ------------------
+* show roles at the time a user was disabled [dumitval]
 
 1.1.28 (2016-10-03)
 ------------------
