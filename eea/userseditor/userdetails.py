@@ -237,9 +237,14 @@ class UserDetails(SimpleItem):
             # being disabled
             for entry in log_entries:
                 if entry['action'] == 'DISABLE_ACCOUNT':
-                    removed_roles = [
-                        (role, agent.role_info(role)['description'])
-                        for role in entry['data'][0]['roles']]
+                    for role in entry['data'][0]['roles']:
+                        try:
+                            role_description = agent.role_info(role)[
+                                'description']
+                        except:
+                            role_description = ("This role doesn't exist "
+                                                "anymore")
+                        removed_roles.append((role, role_description))
                     break
 
         return self._render_template(
