@@ -10,6 +10,7 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from datetime import datetime
 from eea import usersdb
 from eea.ldapadmin.nfp_nrc import get_nrc_roles, get_nfps_for_country
+from eea.ldapadmin.roles_editor import role_members
 from email.mime.text import MIMEText
 from image_processor import scale_to
 from ldap import INSUFFICIENT_ACCESS
@@ -359,11 +360,13 @@ class UsersEditor(SimpleItem, PropertyManager):
                         # if the organisation is not proper for the nrc,
                         # send an email to all nfps for that country
                         if not org_info or org_info.get('country') != country_code:
-                            nfps = get_nfps_for_country(agent, country_code)
-                            for nfp_id in nfps:
-                                nfp_info = agent.user_info(nfp_id)
-                                self._send_nfp_nrc_email(
-                                    nrc_role_info, new_info, nfp_info)
+                            nfp_roles = get_nfps_for_country(agent, country_code)
+                            for nfp_role in nfp_roles:
+                                nfps = role_members(agent, nfp_role)['users'].keys()
+                                for nfp_id in nfps:
+                                    nfp_info = agent.user_info(nfp_id)
+                                    self._send_nfp_nrc_email(
+                                        nrc_role_info, new_info, nfp_info)
 
                 agent.set_user_info(user_id, new_info)
 
@@ -413,18 +416,22 @@ class UsersEditor(SimpleItem, PropertyManager):
         addr_from = "no-reply@eea.europa.eu"
         addr_to = nfp_info['email']
 
-        message = MIMEText(email_password_body)
+        message = MIMEText(email_password_body.encode('utf-8'))
         message['From'] = addr_from
         message['To'] = addr_to
-        message['Subject'] = "%s no longer valid member of %s NRC" % \
-            (user_info['full_name'], nrc_role_info['description'])
+        message['Subject'] = "%s %s no longer valid member of %s NRC" % \
+            (user_info['first_name'], user_info['last_name'],
+             nrc_role_info['description'])
 
         try:
-            mailer = getUtility(IMailDelivery, name="Mail")
-            mailer.send(addr_from, [addr_to], message.as_string())
-        except ComponentLookupError:
             mailer = getUtility(IMailDelivery, name="naaya-mail-delivery")
             mailer.send(addr_from, [addr_to], message)
+        except TypeError:
+            mailer = getUtility(IMailDelivery, name="naaya-mail-delivery")
+            mailer.send(addr_from, [addr_to], message.as_string())
+        except ComponentLookupError:
+            mailer = getUtility(IMailDelivery, name="Mail")
+            mailer.send(addr_from, [addr_to], message.as_string())
 
     security.declareProtected(view, 'change_password_html')
     def change_password_html(self, REQUEST):

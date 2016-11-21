@@ -1,5 +1,6 @@
 1.1.30 (unreleased)
 ------------------
+* bugfix for users changint Organisation [dumitval]
 
 1.1.29 (2016-10-10)
 ------------------

@@ -2,7 +2,7 @@
 
 <p>
     This email is to announce you that 
-    <span tal:replace="user_info/full_name" />
+    <span tal:replace="user_info/first_name" /> <span tal:replace="user_info/last_name" />
     is no longer a valid member of 
     <span tal:replace="nrc_role_info/description" />.
 </p>
