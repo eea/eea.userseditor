@@ -1,4 +1,7 @@
-1.1.30 (unreleased)
+1.1.31 (unreleased)
+------------------
+
+1.1.30 (2016-11-21)
 ------------------
 * bugfix for users changint Organisation [dumitval]
 
