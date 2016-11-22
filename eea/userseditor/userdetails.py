@@ -9,8 +9,10 @@ from zope.component import getMultiAdapter
 from zope.pagetemplate.pagetemplatefile import PageTemplateFile as Z3Template
 import json
 import logging
+import os
 
 cfg = getConfiguration()
+cfg.environment.update(os.environ)
 NETWORK_NAME = getattr(cfg, 'environment', {}).get('NETWORK_NAME', 'EIONET')
 eionet_edit_users = 'Eionet edit users'
 

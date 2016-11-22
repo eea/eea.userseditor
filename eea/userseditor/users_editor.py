@@ -21,9 +21,11 @@ from zope.sendmail.interfaces import IMailDelivery
 import deform
 import ldap
 import logging
+import os
 
 
 cfg = getConfiguration()
+cfg.environment.update(os.environ)
 # constant defined in env
 NETWORK_NAME = getattr(cfg, 'environment', {}).get('NETWORK_NAME', 'Eionet')
 
