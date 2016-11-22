@@ -1,4 +1,7 @@
-1.1.31 (unreleased)
+1.1.32 (unreleased)
+------------------
+
+1.1.31 (2016-11-22)
 ------------------
 * add os environ to zope environment [dumitval]
 
