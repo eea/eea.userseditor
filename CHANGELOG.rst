@@ -1,4 +1,7 @@
-1.1.32 (unreleased)
+1.1.33 (unreleased)
+------------------
+
+1.1.32 (2017-06-19)
 ------------------
 * password reset supports stricter password policy in ldap [dumitval]
 
