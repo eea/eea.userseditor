@@ -1,5 +1,6 @@
 1.1.32 (unreleased)
 ------------------
+* password reset supports stricter password policy in ldap [dumitval]
 
 1.1.31 (2016-11-22)
 ------------------
