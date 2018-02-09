@@ -1,5 +1,6 @@
 1.1.33 (unreleased)
 ------------------
+* clearly mark an invalid organisation setting on user details [dumitval]
 
 1.1.32 (2017-06-19)
 ------------------
@@ -11,7 +12,7 @@
 
 1.1.30 (2016-11-21)
 ------------------
-* bugfix for users changint Organisation [dumitval]
+* bugfix for users changing Organisation [dumitval]
 
 1.1.29 (2016-10-10)
 ------------------

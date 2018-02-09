@@ -155,8 +155,11 @@ class UserDetails(SimpleItem):
         if user['organisation']:
             if user['organisation'] == 'eea':
                 user['organisation'] = 'eu_eea'
-            user['organisation_title'] = agent.org_info(
-                user['organisation'])['name']
+            org_info = agent.org_info(user['organisation'])
+            org_id = org_info.get('id')
+            if 'INVALID' in org_id:
+                user['organisation'] = org_id.decode('utf8')
+            user['organisation_title'] = org_info['name']
         else:
             user['organisation_title'] = ''
         return user, roles
