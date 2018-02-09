@@ -1,4 +1,7 @@
-1.1.33 (unreleased)
+1.1.34 (unreleased)
+------------------
+
+1.1.33 (2018-02-09)
 ------------------
 * clearly mark an invalid organisation setting on user details [dumitval]
 
