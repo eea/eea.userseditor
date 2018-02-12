@@ -2,6 +2,7 @@ from AccessControl import ClassSecurityInfo  # , Unauthorized
 from Acquisition import Implicit
 from App.config import getConfiguration
 from DateTime import DateTime
+from datetime import datetime, timedelta
 from OFS.SimpleItem import SimpleItem
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from eea.usersdb import factories
@@ -162,6 +163,15 @@ class UserDetails(SimpleItem):
             user['organisation_title'] = org_info['name']
         else:
             user['organisation_title'] = ''
+        pwdChangedTime = user['pwdChangedTime']
+        if pwdChangedTime:
+            pwdChangedTime = datetime.strptime(pwdChangedTime, '%Y%m%d%H%M%SZ')
+            user['pwdChanged'] = pwdChangedTime.strftime('%Y-%m-%d %H:%M:%S')
+            user['pwdExpired'] = datetime.now() - timedelta(
+                days=365) > pwdChangedTime
+        else:
+            user['pwdChanged'] = ''
+            user['pwdExpired'] = True
         return user, roles
 
     security.declarePublic("index_html")

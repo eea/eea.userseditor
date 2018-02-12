@@ -150,6 +150,9 @@
                         <td tal:content="user/createTimestamp" /></tr>
                     <tr><th scope="row" class="scope-row">Modified</th>
                         <td tal:content="user/modifyTimestamp" /></tr>
+                    <tr><th scope="row" class="scope-row">Password last changed</th>
+                        <td tal:attributes="class python:'error-hint' if user['pwdExpired'] and not disabled else ''"
+                          tal:content="user/pwdChanged" /></tr>
                 </tal:block>
             </table>
 
