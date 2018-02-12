@@ -1,4 +1,7 @@
-1.1.34 (unreleased)
+1.1.35 (unreleased)
+------------------
+
+1.1.34 (2018-02-12)
 ------------------
 * show the date of the last password change in user details page
   refs #92555 [dumitval]
