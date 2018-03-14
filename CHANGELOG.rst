@@ -1,4 +1,7 @@
-1.1.35 (unreleased)
+1.1.36 (unreleased)
+------------------
+
+1.1.35 (2018-03-14)
 ------------------
 * raise NotFound for disabled users (user directory) [dumitval]
 
