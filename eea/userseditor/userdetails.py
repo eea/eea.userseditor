@@ -11,6 +11,7 @@ from zope.pagetemplate.pagetemplatefile import PageTemplateFile as Z3Template
 import json
 import logging
 import os
+from zExceptions import NotFound
 
 cfg = getConfiguration()
 cfg.environment.update(os.environ)
@@ -248,6 +249,9 @@ class UserDetails(SimpleItem):
 
         removed_roles = []
         if user.get('status') == 'disabled':
+            auth_user = self.REQUEST.AUTHENTICATED_USER
+            if not bool(auth_user.has_permission(eionet_edit_users, self)):
+                raise NotFound("User '%s' does not exist" % uid)
             # process log entries to list the roles the user had before
             # being disabled
             for entry in log_entries:
