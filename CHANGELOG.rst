@@ -1,5 +1,6 @@
 1.1.36 (unreleased)
 ------------------
+* add secondary ldap bind auth for unlimited search [dumitval]
 
 1.1.35 (2018-03-14)
 ------------------

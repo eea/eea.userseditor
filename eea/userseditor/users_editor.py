@@ -1,5 +1,5 @@
 from AccessControl import ClassSecurityInfo
-from AccessControl.Permissions import view
+from AccessControl.Permissions import view, view_management_screens
 from AccessControl.SecurityManagement import getSecurityManager
 from App.class_init import InitializeClass
 from App.config import getConfiguration
@@ -173,9 +173,10 @@ class CircaUsersDB(usersdb.UsersDB):
 class UsersEditor(SimpleItem, PropertyManager):
     meta_type = 'Eionet Users Editor'
     icon = '++resource++eea.userseditor-www/users_editor.gif'
-    manage_options = PropertyManager.manage_options + (
+    manage_options = (
+        {'label': 'Configure', 'action': 'manage_edit'},
         {'label': 'View', 'action': ''},
-    ) + SimpleItem.manage_options
+    ) + PropertyManager.manage_options + SimpleItem.manage_options
     _properties = (
         {'id': 'title', 'type': 'string', 'mode': 'w', 'label': 'Title'},
         {'id': 'ldap_server', 'type': 'string', 'mode': 'w',
@@ -193,7 +194,34 @@ class UsersEditor(SimpleItem, PropertyManager):
         self.title = title
         self.ldap_server = ldap_server
 
-    def _get_ldap_agent(self, bind=False, write=False):
+    security.declareProtected(view_management_screens, 'manage_edit')
+    manage_edit = PageTemplateFile('zpt/manage_edit', globals())
+
+    security.declareProtected(view_management_screens, 'get_config')
+
+    def get_config(self):
+        config = dict(getattr(self, '_config', {}))
+        config.update({'ldap_server': self.ldap_server})
+        return config
+
+    security.declareProtected(view_management_screens, 'manage_edit_save')
+
+    def manage_edit_save(self, REQUEST):
+        """ save changes to configuration """
+        if not getattr(self, '_config', None):
+            self._config = {}
+        browser_dn = REQUEST.form.get('browser_dn', '').strip()
+        browser_pw = REQUEST.form.get('browser_pw', '')
+        self.ldap_server = REQUEST.form.get('ldap_server')
+        self._config['browser_dn'] = browser_dn
+        if self._config['browser_dn']:
+            if browser_pw:
+                # we don't want to write the password each time we edit
+                # the object, so update only if a password was entered
+                self._config['browser_pw'] = browser_pw
+        REQUEST.RESPONSE.redirect(self.absolute_url() + '/manage_edit')
+
+    def _get_ldap_agent(self, bind=False, write=False, browser=False):
 
         # temporary fix while CIRCA is still online
         current_agent = usersdb.UsersDB(ldap_server=self.ldap_server)
@@ -205,7 +233,12 @@ class UsersEditor(SimpleItem, PropertyManager):
         else:
             agent = current_agent
         agent._author = logged_in_user(self.REQUEST)
-        if bind is True:
+        if browser is True:
+            browser_dn = self._config.get('browser_dn')
+            browser_pw = self._config.get('browser_pw')
+            if browser_dn and browser_pw:
+                agent.conn.simple_bind_s(browser_dn, browser_pw)
+        elif bind is True:
             user = getSecurityManager().getUser()
             if isinstance(user, LDAPUser):
                 user_dn = user.getUserDN()
@@ -263,6 +296,11 @@ class UsersEditor(SimpleItem, PropertyManager):
         if not _is_logged_in(REQUEST):
             return REQUEST.RESPONSE.redirect(self.absolute_url() + '/')
 
+        browser_agent = self._get_ldap_agent(browser=True)
+        orgs = browser_agent.all_organisations()
+        orgs = [{'id': k, 'text': v['name'], 'text_native': v['name_native'],
+                 'ldap': True} for k, v in orgs.items()]
+
         agent = self._get_ldap_agent(bind=True)
         user_id = _get_user_id(REQUEST)
 
@@ -270,10 +308,6 @@ class UsersEditor(SimpleItem, PropertyManager):
         form_data = _session_pop(REQUEST, SESSION_FORM_DATA, None)
         if form_data is None:
             form_data = agent.user_info(user_id)
-
-        orgs = agent.all_organisations()
-        orgs = [{'id': k, 'text': v['name'], 'text_native': v['name_native'],
-                 'ldap': True} for k, v in orgs.items()]
 
         user_orgs = list(agent.user_organisations(user_id))
         if not user_orgs:
