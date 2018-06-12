@@ -180,6 +180,9 @@ class UserDetails(SimpleItem):
     def index_html(self, REQUEST):
         """ """
         uid = REQUEST.form.get('uid')
+        if not uid:
+            # a missing uid can only mean this page is called by accident
+            return
         date_for_roles = REQUEST.form.get('date_for_roles')
 
         if "," in uid:

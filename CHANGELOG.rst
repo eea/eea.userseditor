@@ -1,5 +1,6 @@
 1.1.37 (unreleased)
 ------------------
+* avoid crash if uid is not sent to the user details page [dumitval]
 
 1.1.36 (2018-04-27)
 ------------------
