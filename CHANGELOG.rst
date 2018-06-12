@@ -1,4 +1,7 @@
-1.1.37 (unreleased)
+1.1.38 (unreleased)
+------------------
+
+1.1.37 (2018-06-12)
 ------------------
 * avoid crash if uid is not sent to the user details page [dumitval]
 
