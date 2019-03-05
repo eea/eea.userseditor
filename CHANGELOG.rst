@@ -1,4 +1,7 @@
-1.1.38 (unreleased)
+1.1.39 (unreleased)
+------------------
+
+1.1.38 (2019-03-05)
 ------------------
 * add and use bind credentials for unrestricted search [dumitval]
 
