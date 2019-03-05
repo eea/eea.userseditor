@@ -1,5 +1,6 @@
 1.1.38 (unreleased)
 ------------------
+* add and use bind credentials for unrestricted search [dumitval]
 
 1.1.37 (2018-06-12)
 ------------------

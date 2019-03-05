@@ -1,16 +1,17 @@
 <tal:block content="structure here/manage_page_header" />
 
 <style>
-    form.add-userdetails label {
+    form.add-users-admin label {
         display: inline-block;
         width: 10em;
     }
 </style>
 
-<h2>Add Eionet User Details page</h2>
+<h2>Add Eionet users admin</h2>
 
 <form action="manage_add_userdetails" method="post"
-      name="add-userdetails" class="add-userdetails">
+      name="add-users-admin" class="add-users-admin"
+      tal:define="config template/config_defaults">
     <label for="edit-id">id</label>
     <input name="id" id="edit-id" />
     <br />
@@ -18,6 +19,8 @@
     <label for="edit-title">Title</label>
     <input name="title" id="edit-title" />
     <br />
+
+    <metal:block use-macro="template/ldap_config_edit_macro" />
 
     <input type="submit" />
 </form>

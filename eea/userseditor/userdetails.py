@@ -1,10 +1,13 @@
 from AccessControl import ClassSecurityInfo  # , Unauthorized
+from AccessControl.Permissions import view_management_screens
 from Acquisition import Implicit
 from App.config import getConfiguration
 from DateTime import DateTime
 from datetime import datetime, timedelta
 from OFS.SimpleItem import SimpleItem
+from OFS.PropertyManager import PropertyManager
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
+from persistent.mapping import PersistentMapping
 from eea.usersdb import factories
 from zope.component import getMultiAdapter
 from zope.pagetemplate.pagetemplatefile import PageTemplateFile as Z3Template
@@ -12,6 +15,7 @@ import json
 import logging
 import os
 from zExceptions import NotFound
+from eea.ldapadmin import ldap_config
 
 cfg = getConfiguration()
 cfg.environment.update(os.environ)
@@ -20,14 +24,17 @@ eionet_edit_users = 'Eionet edit users'
 
 log = logging.getLogger(__name__)
 
-manage_add_userdetails_html = PageTemplateFile('zpt/userdetails/manage_add',
-                                               globals())
+manage_add_userdetails_html = PageTemplateFile(
+    'zpt/userdetails/user_manage_add', globals())
+manage_add_userdetails_html.ldap_config_edit_macro = ldap_config.edit_macro
+manage_add_userdetails_html.config_defaults = lambda: ldap_config.defaults
 
 
 def manage_add_userdetails(parent, id, REQUEST=None):
     """ Create a new UserDetails object """
     form = (REQUEST.form if REQUEST is not None else {})
-    obj = UserDetails()
+    config = ldap_config.read_form(form)
+    obj = UserDetails(config)
     obj.title = form.get('title', id)
     obj._setId(id)
     parent._setObject(id, obj)
@@ -129,15 +136,40 @@ class UserDetails(SimpleItem):
 
     _render_template = TemplateRenderer(CommonTemplateLogic)
 
-    def __init__(self):
-        super(UserDetails, self).__init__()
+    manage_options = (
+        {'label': 'Configure', 'action': 'manage_edit'},
+        {'label': 'View', 'action': ''},
+    ) + PropertyManager.manage_options + SimpleItem.manage_options
 
-    def _get_ldap_agent(self, bind=False):
-        agent = factories.agent_from_uf(
-            self.restrictedTraverse("/acl_users"),
-            bind=bind
-        )
-        agent._author = logged_in_user(self.REQUEST)
+    security.declareProtected(view_management_screens, 'manage_edit')
+    manage_edit = PageTemplateFile('zpt/userdetails/user_manage_edit',
+                                   globals())
+    manage_edit.ldap_config_edit_macro = ldap_config.edit_macro
+
+    security.declareProtected(view_management_screens, 'get_config')
+
+    def get_config(self):
+        config = dict(getattr(self, '_config', {}))
+        return config
+
+    security.declareProtected(view_management_screens, 'manage_edit_save')
+
+    def manage_edit_save(self, REQUEST):
+        """ save changes to configuration """
+        self._config.update(ldap_config.read_form(REQUEST.form, edit=True))
+        REQUEST.RESPONSE.redirect(self.absolute_url() + '/manage_edit')
+
+    def __init__(self, config={}):
+        super(UserDetails, self).__init__()
+        self._config = PersistentMapping(config)
+
+    def _get_ldap_agent(self, bind=True, secondary=False):
+        agent = ldap_config.ldap_agent_with_config(self._config, bind,
+                                                   secondary=secondary)
+        try:
+            agent._author = logged_in_user(self.REQUEST)
+        except AttributeError:
+            agent._author = "System user"
         return agent
 
     def _prepare_user_page(self, uid):
