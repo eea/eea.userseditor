@@ -1,29 +1,30 @@
+import logging
+import os
+from datetime import datetime
+from email.mime.text import MIMEText
+
+from zope.component import getUtility
+from zope.component.interfaces import ComponentLookupError
+from zope.sendmail.interfaces import IMailDelivery
+
+import deform
+import ldap
 from AccessControl import ClassSecurityInfo
 from AccessControl.Permissions import view, view_management_screens
 from AccessControl.SecurityManagement import getSecurityManager
 from App.class_init import InitializeClass
 from App.config import getConfiguration
+from eea import usersdb
+from eea.ldapadmin.nfp_nrc import get_nfps_for_country, get_nrc_roles
+from eea.ldapadmin.roles_editor import role_members
+from image_processor import scale_to
+from ldap import (CONSTRAINT_VIOLATION, INSUFFICIENT_ACCESS, NO_SUCH_OBJECT,
+                  SCOPE_BASE)
 from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
+from persistent.mapping import PersistentMapping
 from Products.LDAPUserFolder.LDAPUser import LDAPUser
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
-from datetime import datetime
-from eea import usersdb
-from eea.ldapadmin.nfp_nrc import get_nrc_roles, get_nfps_for_country
-from eea.ldapadmin.roles_editor import role_members
-from email.mime.text import MIMEText
-from image_processor import scale_to
-from ldap import INSUFFICIENT_ACCESS
-from ldap import CONSTRAINT_VIOLATION, NO_SUCH_OBJECT, SCOPE_BASE
-from persistent.mapping import PersistentMapping
-from zope.component import getUtility
-from zope.component.interfaces import ComponentLookupError
-from zope.sendmail.interfaces import IMailDelivery
-import deform
-import ldap
-import logging
-import os
-
 
 cfg = getConfiguration()
 cfg.environment.update(os.environ)
@@ -48,11 +49,13 @@ def _is_authenticated(request):
 
 def logged_in_user(request):
     user_id = ''
+
     if _is_authenticated(request):
         user = request.get('AUTHENTICATED_USER', '')
         user_id = user.id
 
     return user_id
+
 
 manage_addUsersEditor_html = PageTemplateFile('zpt/add', globals())
 
@@ -62,22 +65,26 @@ def manage_addUsersEditor(parent, id, title="", ldap_server="", REQUEST=None):
     ob = UsersEditor(title, ldap_server)
     ob._setId(id)
     parent._setObject(id, ob)
+
     if REQUEST is not None:
         REQUEST.RESPONSE.redirect(parent.absolute_url() + '/manage_workspace')
 
 
 def _get_session_messages(request):
     session = request.SESSION
+
     if SESSION_MESSAGES in session.keys():
         msgs = dict(session[SESSION_MESSAGES])
         del session[SESSION_MESSAGES]
     else:
         msgs = {}
+
     return msgs
 
 
 def _set_session_message(request, msg_type, msg):
     session = request.SESSION
+
     if SESSION_MESSAGES not in session.keys():
         session[SESSION_MESSAGES] = PersistentMapping()
     # TODO: allow for more than one message of each type
@@ -86,9 +93,11 @@ def _set_session_message(request, msg_type, msg):
 
 def _session_pop(request, name, default):
     session = request.SESSION
+
     if name in session.keys():
         value = session[name]
         del session[name]
+
         return value
     else:
         return default
@@ -113,7 +122,9 @@ def load_template(name, _memo={}):
     if name not in _memo:
         from zope.pagetemplate.pagetemplatefile import PageTemplateFile
         _memo[name] = PageTemplateFile(name, globals())
+
     return _memo[name]
+
 
 CIRCA_USER_SCHEMA = dict(usersdb.db_agent.EIONET_USER_SCHEMA, fax='fax')
 CIRCA_USERS_DN_SUFFIX = 'ou=Users,ou=DATA,ou=eea,o=IRCusers,l=CIRCA'
@@ -152,6 +163,7 @@ class DualLDAPProxy(object):
 
     def __getattr__(self, name):
         # patch all other methods straight to front-end ldap
+
         return getattr(self._current_ldap, name)
 
 
@@ -164,6 +176,7 @@ class CircaUsersDB(usersdb.UsersDB):
     def _user_id(self, user_dn, attr={}):
         circa_user_id = super(CircaUsersDB, self)._user_id(user_dn)
         assert '@' in circa_user_id
+
         return circa_user_id.split('@')[0]
 
     def _search_user_in_orgs(self, user_id):
@@ -202,18 +215,21 @@ class UsersEditor(SimpleItem, PropertyManager):
     def get_config(self):
         config = dict(getattr(self, '_config', {}))
         config.update({'ldap_server': self.ldap_server})
+
         return config
 
     security.declareProtected(view_management_screens, 'manage_edit_save')
 
     def manage_edit_save(self, REQUEST):
         """ save changes to configuration """
+
         if not getattr(self, '_config', None):
             self._config = {}
         browser_dn = REQUEST.form.get('browser_dn', '').strip()
         browser_pw = REQUEST.form.get('browser_pw', '')
         self.ldap_server = REQUEST.form.get('ldap_server')
         self._config['browser_dn'] = browser_dn
+
         if self._config['browser_dn']:
             if browser_pw:
                 # we don't want to write the password each time we edit
@@ -225,6 +241,7 @@ class UsersEditor(SimpleItem, PropertyManager):
 
         # temporary fix while CIRCA is still online
         current_agent = usersdb.UsersDB(ldap_server=self.ldap_server)
+
         if write and self.legacy_ldap_server != "":
             legacy_agent = CircaUsersDB(ldap_server=self.legacy_ldap_server,
                                         users_dn=CIRCA_USERS_DN_SUFFIX,
@@ -233,16 +250,20 @@ class UsersEditor(SimpleItem, PropertyManager):
         else:
             agent = current_agent
         agent._author = logged_in_user(self.REQUEST)
+
         if browser is True:
             browser_dn = self._config.get('browser_dn')
             browser_pw = self._config.get('browser_pw')
+
             if browser_dn and browser_pw:
                 agent.conn.simple_bind_s(browser_dn, browser_pw)
         elif bind is True:
             user = getSecurityManager().getUser()
+
             if isinstance(user, LDAPUser):
                 user_dn = user.getUserDN()
                 user_pwd = user._getPassword()
+
                 if not user_pwd or user_pwd == 'undef':
                     # This user object did not result from a login
                     user_dn = user_pwd = ''
@@ -258,18 +279,23 @@ class UsersEditor(SimpleItem, PropertyManager):
         # Naaya groupware integration. If present, use the standard template
         # of the current site
         macro = self.aq_parent.restrictedTraverse('/').get('gw_macro')
+
         if macro:
             try:
                 layout = self.aq_parent.getLayoutTool().getCurrentSkin()
                 main_template = layout.getTemplateById('standard_template')
+                main_page_macro = main_template.macros['page']
             except:
                 main_template = self.aq_parent.restrictedTraverse(
-                    'standard_template.pt')
+                    'main_template')
+                main_page_macro = main_template.macros['page']
         else:
             main_template = self.aq_parent.restrictedTraverse(
-                'standard_template.pt')
-        main_page_macro = main_template.macros['page']
+                'main_template')
+            main_page_macro = main_template.macros['master']
+
         options.update({'network_name': NETWORK_NAME})
+
         return self._zope2_wrapper(main_page_macro=main_page_macro,
                                    body_html=tmpl(**options))
 
@@ -280,6 +306,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         options = {
             'base_url': self.absolute_url(),
         }
+
         if _is_logged_in(REQUEST):
             agent = self._get_ldap_agent(bind=True)
             user_id = _get_user_id(REQUEST)
@@ -287,12 +314,14 @@ class UsersEditor(SimpleItem, PropertyManager):
         else:
             options['user_info'] = None
         options.update(_get_session_messages(REQUEST))
+
         return self._render_template('zpt/index.zpt', **options)
 
     security.declareProtected(view, 'edit_account_html')
 
     def edit_account_html(self, REQUEST):
         """ view """
+
         if not _is_logged_in(REQUEST):
             return REQUEST.RESPONSE.redirect(self.absolute_url() + '/')
 
@@ -306,12 +335,15 @@ class UsersEditor(SimpleItem, PropertyManager):
 
         errors = _session_pop(REQUEST, SESSION_FORM_ERRORS, {})
         form_data = _session_pop(REQUEST, SESSION_FORM_DATA, None)
+
         if form_data is None:
             form_data = agent.user_info(user_id)
 
         user_orgs = list(agent.user_organisations(user_id))
+
         if not user_orgs:
             org = form_data.get('organisation')
+
             if org:
                 orgs.append({'id': org, 'text': org, 'text_native': '',
                              'ldap': False})
@@ -322,6 +354,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         orgs.sort(lambda x, y: cmp(x['text'], y['text']))
 
         choices = [('-', '-')]
+
         for org in orgs:
             if org['ldap']:
                 if org['text_native']:
@@ -349,9 +382,11 @@ class UsersEditor(SimpleItem, PropertyManager):
             country_code = org_info['country']
 
         nrc_roles = get_nrc_roles(agent, user_id)
+
         for nrc_role in nrc_roles:
             nrc_role_info = agent.role_info(nrc_role)
             country_code = nrc_role.split('-')[-1]
+
             if not org_info or org_info.get('country') != country_code:
                 invalid_nrcs.append(nrc_role_info)
 
@@ -379,6 +414,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         except deform.ValidationFailure, e:
             session = REQUEST.SESSION
             errors = {}
+
             for field_error in e.error.children:
                 errors[field_error.node.name] = field_error.msg
             session[SESSION_FORM_ERRORS] = errors
@@ -400,6 +436,7 @@ class UsersEditor(SimpleItem, PropertyManager):
 
                 if new_org_id != old_org_id:
                     self._remove_from_all_orgs(agent, user_id)
+
                     if new_org_id_valid:
                         self._add_to_org(agent, new_org_id, user_id)
                         org_info = agent.org_info(new_org_id)
@@ -407,18 +444,22 @@ class UsersEditor(SimpleItem, PropertyManager):
                         org_info = None
 
                     nrc_roles = get_nrc_roles(agent, user_id)
+
                     for nrc_role in nrc_roles:
                         nrc_role_info = agent.role_info(nrc_role)
                         country_code = nrc_role.split('-')[-1]
                         # if the organisation is not proper for the nrc,
                         # send an email to all nfps for that country
+
                         if (not org_info or
                                 org_info.get('country') != country_code):
                             nfp_roles = get_nfps_for_country(agent,
                                                              country_code)
+
                             for nfp_role in nfp_roles:
                                 nfps = role_members(agent,
                                                     nfp_role)['users'].keys()
+
                                 for nfp_id in nfps:
                                     nfp_info = agent.user_info(nfp_id)
                                     self._send_nfp_nrc_email(
@@ -437,6 +478,7 @@ class UsersEditor(SimpleItem, PropertyManager):
             agent.add_to_org(org_id, [user_id])
         except ldap.INSUFFICIENT_ACCESS:
             ids = self.aq_parent.objectIds(["Eionet Organisations Editor"])
+
             if ids:
                 obj = self.aq_parent[ids[0]]
                 org_agent = obj._get_ldap_agent(bind=True)
@@ -446,6 +488,7 @@ class UsersEditor(SimpleItem, PropertyManager):
 
     def _remove_from_all_orgs(self, agent, user_id):
         orgs = agent.user_organisations(user_id)
+
         for org_dn in orgs:
             org_id = agent._org_id(org_dn)
             try:
@@ -454,6 +497,7 @@ class UsersEditor(SimpleItem, PropertyManager):
                 pass
             except ldap.INSUFFICIENT_ACCESS:
                 ids = self.aq_parent.objectIds(["Eionet Organisations Editor"])
+
                 if ids:
                     obj = self.aq_parent[ids[0]]
                     org_agent = obj._get_ldap_agent(bind=True)
@@ -494,6 +538,7 @@ class UsersEditor(SimpleItem, PropertyManager):
 
     def change_password_html(self, REQUEST):
         """ view """
+
         if not _is_logged_in(REQUEST):
             return REQUEST.RESPONSE.redirect(self.absolute_url() + '/')
 
@@ -514,6 +559,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         if form['new_password'] != form['new_password_confirm']:
             _set_session_message(REQUEST, 'error',
                                  "New passwords do not match")
+
             return REQUEST.RESPONSE.redirect(self.absolute_url() +
                                              '/change_password_html')
 
@@ -547,6 +593,7 @@ class UsersEditor(SimpleItem, PropertyManager):
 
         except ValueError:
             _set_session_message(REQUEST, 'error', "Old password is wrong")
+
             return REQUEST.RESPONSE.redirect(self.absolute_url() +
                                              '/change_password_html')
         except CONSTRAINT_VIOLATION, e:
@@ -565,6 +612,7 @@ class UsersEditor(SimpleItem, PropertyManager):
             else:
                 message = e.message['info']
             _set_session_message(REQUEST, 'error', message)
+
             return REQUEST.RESPONSE.redirect(self.absolute_url() +
                                              '/change_password_html')
 
@@ -580,12 +628,14 @@ class UsersEditor(SimpleItem, PropertyManager):
                 "Password changed successfully. You must log in again."],
             'base_url': self.absolute_url(),
         }
+
         return self._render_template('zpt/result_page.zpt', **options)
 
     security.declareProtected(view, 'profile_picture_html')
 
     def profile_picture_html(self, REQUEST):
         """ view """
+
         if not _is_logged_in(REQUEST):
             return REQUEST.RESPONSE.redirect(self.absolute_url() + '/')
         user_id = _get_user_id(REQUEST)
@@ -595,6 +645,7 @@ class UsersEditor(SimpleItem, PropertyManager):
             has_image = True
         else:
             has_image = False
+
         return self._render_template('zpt/profile_picture.zpt',
                                      user_id=_get_user_id(REQUEST),
                                      base_url=self.absolute_url(),
@@ -606,9 +657,11 @@ class UsersEditor(SimpleItem, PropertyManager):
 
     def profile_picture(self, REQUEST):
         """ view """
+
         if not _is_logged_in(REQUEST):
             return REQUEST.RESPONSE.redirect(self.absolute_url() + '/')
         image_file = REQUEST.form.get('image_file', None)
+
         if image_file:
             picture_data = image_file.read()
             user_id = _get_user_id(REQUEST)
@@ -622,8 +675,10 @@ class UsersEditor(SimpleItem, PropertyManager):
             except ValueError:
                 _set_session_message(REQUEST, 'error',
                                      "Error updating picture")
+
                 return REQUEST.RESPONSE.redirect(self.absolute_url() +
                                                  '/profile_picture_html')
+
             if success:
                 success_text = "That's a beautiful picture."
                 _set_session_message(REQUEST, 'message', success_text)
@@ -633,6 +688,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         else:
             _set_session_message(REQUEST, 'error',
                                  "You must provide a JPG file.")
+
         return REQUEST.RESPONSE.redirect(self.absolute_url() +
                                          '/profile_picture_html')
 
@@ -648,6 +704,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         agent = self._get_ldap_agent(bind=True)
         photo = agent.get_profile_picture(user_id)
         REQUEST.RESPONSE.setHeader('Content-Type', 'image/jpeg')
+
         return photo
 
     security.declareProtected(view, 'remove_picture')
@@ -664,7 +721,9 @@ class UsersEditor(SimpleItem, PropertyManager):
             _set_session_message(REQUEST, 'error', "Something went wrong.")
         else:
             _set_session_message(REQUEST, 'message', "No image for you.")
+
         return REQUEST.RESPONSE.redirect(self.absolute_url() +
                                          '/profile_picture_html')
+
 
 InitializeClass(UsersEditor)
