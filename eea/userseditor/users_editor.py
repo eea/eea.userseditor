@@ -273,6 +273,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         return agent
 
     _zope2_wrapper = PageTemplateFile('zpt/zope2_wrapper.zpt', globals())
+    _plone5_wrapper = PageTemplateFile('zpt/plone5_wrapper.zpt', globals())
 
     def _render_template(self, name, **options):
         tmpl = load_template(name)
@@ -284,20 +285,21 @@ class UsersEditor(SimpleItem, PropertyManager):
             try:
                 layout = self.aq_parent.getLayoutTool().getCurrentSkin()
                 main_template = layout.getTemplateById('standard_template')
-                main_page_macro = main_template.macros['page']
             except:
                 main_template = self.aq_parent.restrictedTraverse(
-                    'main_template')
-                main_page_macro = main_template.macros['page']
+                    'standard_template.pt')
+            main_page_macro = main_template.macros['page']
+            wrapper = self._zope2_wrapper
         else:
             main_template = self.aq_parent.restrictedTraverse(
                 'main_template')
             main_page_macro = main_template.macros['master']
+            wrapper = self._plone5_wrapper
 
         options.update({'network_name': NETWORK_NAME})
 
-        return self._zope2_wrapper(main_page_macro=main_page_macro,
-                                   body_html=tmpl(**options))
+        return wrapper(main_page_macro=main_page_macro,
+                       body_html=tmpl(**options))
 
     security.declareProtected(view, 'index_html')
 

@@ -1,5 +1,5 @@
 <metal:block use-macro="options/main_page_macro">
-  <metal:block fill-slot="body">
+  <metal:block fill-slot="content-core">
     <link rel="stylesheet" type="text/css" media="screen"
           href="/++resource++eea.userseditor-www/style.css"/>
     <!-- <script src="/++resource++eea.userseditor&#45;www/jquery&#45;1.4.4.min.js"></script> -->
