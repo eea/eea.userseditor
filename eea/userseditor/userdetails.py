@@ -6,11 +6,10 @@ from DateTime import DateTime
 from datetime import datetime, timedelta
 from OFS.SimpleItem import SimpleItem
 from OFS.PropertyManager import PropertyManager
+from Products.Five.browser.pagetemplatefile import PageTemplateFile as Z3Template
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from persistent.mapping import PersistentMapping
-from eea.usersdb import factories
 from zope.component import getMultiAdapter
-from zope.pagetemplate.pagetemplatefile import PageTemplateFile as Z3Template
 import json
 import logging
 import os
@@ -25,7 +24,7 @@ eionet_edit_users = 'Eionet edit users'
 log = logging.getLogger(__name__)
 
 manage_add_userdetails_html = PageTemplateFile(
-    'zpt/userdetails/user_manage_add', globals())
+    'zpt/userdetails/user_manage_add.zpt', globals())
 manage_add_userdetails_html.ldap_config_edit_macro = ldap_config.edit_macro
 manage_add_userdetails_html.config_defaults = lambda: ldap_config.defaults
 
@@ -142,7 +141,7 @@ class UserDetails(SimpleItem):
     ) + PropertyManager.manage_options + SimpleItem.manage_options
 
     security.declareProtected(view_management_screens, 'manage_edit')
-    manage_edit = PageTemplateFile('zpt/userdetails/user_manage_edit',
+    manage_edit = PageTemplateFile('zpt/userdetails/user_manage_edit.zpt',
                                    globals())
     manage_edit.ldap_config_edit_macro = ldap_config.edit_macro
 

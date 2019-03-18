@@ -24,6 +24,7 @@ from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
 from persistent.mapping import PersistentMapping
 from Products.LDAPUserFolder.LDAPUser import LDAPUser
+from Products.Five.browser.pagetemplatefile import PageTemplateFile as Z3Template
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 cfg = getConfiguration()
@@ -57,7 +58,7 @@ def logged_in_user(request):
     return user_id
 
 
-manage_addUsersEditor_html = PageTemplateFile('zpt/add', globals())
+manage_addUsersEditor_html = PageTemplateFile('zpt/add.zpt', globals())
 
 
 def manage_addUsersEditor(parent, id, title="", ldap_server="", REQUEST=None):
@@ -120,9 +121,7 @@ def _is_logged_in(request):
 
 def load_template(name, _memo={}):
     if name not in _memo:
-        from zope.pagetemplate.pagetemplatefile import PageTemplateFile
-        _memo[name] = PageTemplateFile(name, globals())
-
+        _memo[name] = Z3Template(name, globals())
     return _memo[name]
 
 
@@ -208,7 +207,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         self.ldap_server = ldap_server
 
     security.declareProtected(view_management_screens, 'manage_edit')
-    manage_edit = PageTemplateFile('zpt/manage_edit', globals())
+    manage_edit = PageTemplateFile('zpt/manage_edit.zpt', globals())
 
     security.declareProtected(view_management_screens, 'get_config')
 
