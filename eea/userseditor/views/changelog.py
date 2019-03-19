@@ -1,6 +1,7 @@
 from Products.Five import BrowserView
-from eea.usersdb import factories
 from zope.interface import Interface, Attribute, implements
+from Products.LDAPUserFolder.LDAPUserFolder import LDAPUserFolder
+from eea.usersdb import factories
 
 
 class IActionDetails(Interface):
@@ -34,8 +35,13 @@ class BaseActionDetails(BrowserView):
         return u"%s (%s)" % (user_info['full_name'], entry['author'])
 
     def _get_ldap_agent(self):
-        return factories.agent_from_uf(
-            self.context.restrictedTraverse("/acl_users"))
+        # without the leading slash, since it will match the root acl
+        user_folder = self.context.restrictedTraverse("acl_users")
+        # Plone compatibility
+        if not isinstance(user_folder, LDAPUserFolder):
+            user_folder = self.context.restrictedTraverse(
+                "acl_users/ldap-plugin/acl_users")
+        return factories.agent_from_uf(user_folder)
 
     def merge(self, roles):
         """ Merge the entries so that the only the leaf roles are displayed
@@ -60,7 +66,7 @@ class BaseActionDetails(BrowserView):
             if i == last:
                 out.append(role)
                 break
-            if role not in roles[i+1]:
+            if role not in roles[i + 1]:
                 out.append(role)
 
         return out

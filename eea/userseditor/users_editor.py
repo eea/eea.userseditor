@@ -4,7 +4,6 @@ from datetime import datetime
 from email.mime.text import MIMEText
 
 from zope.component import getUtility
-from zope.component.interfaces import ComponentLookupError
 from zope.sendmail.interfaces import IMailDelivery
 
 import deform
@@ -24,8 +23,8 @@ from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
 from persistent.mapping import PersistentMapping
 from Products.LDAPUserFolder.LDAPUser import LDAPUser
-from Products.Five.browser.pagetemplatefile import PageTemplateFile as Z3Template
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
+from z3c.pt.pagetemplate import PageTemplateFile as ChameleonTemplate
 
 cfg = getConfiguration()
 cfg.environment.update(os.environ)
@@ -119,9 +118,16 @@ def _is_logged_in(request):
         return True
 
 
-def load_template(name, _memo={}):
+def load_template(name, context=None, _memo={}):
     if name not in _memo:
-        _memo[name] = Z3Template(name, globals())
+        tpl = ChameleonTemplate(name)
+
+        if context is not None:
+            bound = tpl.bind(context)
+            _memo[name] = bound
+        else:
+            _memo[name] = tpl
+
     return _memo[name]
 
 
@@ -531,9 +537,10 @@ class UsersEditor(SimpleItem, PropertyManager):
         except TypeError:
             mailer = getUtility(IMailDelivery, name="naaya-mail-delivery")
             mailer.send(addr_from, [addr_to], message.as_string())
-        except ComponentLookupError:
-            mailer = getUtility(IMailDelivery, name="Mail")
-            mailer.send(addr_from, [addr_to], message.as_string())
+        except ImportError:
+            from plone import api
+            api.portal.send_email(recipient=[addr_to], sender=addr_from,
+                                  subject=message.get('Subject'), body=message)
 
     security.declareProtected(view, 'change_password_html')
 
@@ -586,9 +593,11 @@ class UsersEditor(SimpleItem, PropertyManager):
             message['Subject'] = "%s Account - New password" % NETWORK_NAME
 
             try:
-                mailer = getUtility(IMailDelivery, name="Mail")
-                mailer.send(addr_from, [addr_to], message.as_string())
-            except ComponentLookupError:
+                from plone import api
+                api.portal.send_email(
+                    recipient=[addr_to], sender=addr_from,
+                    subject=message.get('Subject'), body=message)
+            except ImportError:
                 mailer = getUtility(IMailDelivery, name="naaya-mail-delivery")
                 mailer.send(addr_from, [addr_to], message)
 

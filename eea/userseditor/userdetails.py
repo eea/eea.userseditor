@@ -6,8 +6,8 @@ from DateTime import DateTime
 from datetime import datetime, timedelta
 from OFS.SimpleItem import SimpleItem
 from OFS.PropertyManager import PropertyManager
-from Products.Five.browser.pagetemplatefile import PageTemplateFile as Z3Template
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
+from z3c.pt.pagetemplate import PageTemplateFile as ChameleonTemplate
 from persistent.mapping import PersistentMapping
 from zope.component import getMultiAdapter
 import json
@@ -46,12 +46,21 @@ def _is_authenticated(request):
     return ('Authenticated' in request.AUTHENTICATED_USER.getRoles())
 
 
-def load_template(name, _memo={}):
+def load_template(name, context=None, _memo={}):
     if name not in _memo:
-        _memo[name] = Z3Template(name, globals())
+        tpl = ChameleonTemplate(name)
+
+        if context is not None:
+            bound = tpl.bind(context)
+            _memo[name] = bound
+        else:
+            _memo[name] = tpl
+
     return _memo[name]
 
+
 zope2_wrapper = PageTemplateFile('zpt/zope2_wrapper.zpt', globals())
+plone5_wrapper = PageTemplateFile('zpt/plone5_wrapper.zpt', globals())
 
 
 class TemplateRenderer(Implicit):
@@ -60,18 +69,32 @@ class TemplateRenderer(Implicit):
 
     def render(self, name, **options):
         context = self.aq_parent
-        template = load_template(name)
-        namespace = template.pt_getContext((), options)
+        template = load_template(name, context)
+
+        try:
+            namespace = template.pt_getContext((), options)
+        except AttributeError:      # Plone5 compatibility
+            namespace = template.im_self._pt_get_context(
+                context, context.REQUEST, options)
+
         namespace['common'] = self.common_factory(context)
-        return template.pt_render(namespace)
+        namespace['browserview'] = self.browserview
+
+        if hasattr(template, 'pt_render'):
+            return template.pt_render(namespace)
+        else:
+            return template.im_self.render(**namespace)
+
+    def browserview(self, context, name):
+        return getMultiAdapter((context, self.aq_parent.REQUEST), name=name)
 
     def wrap(self, body_html):
         context = self.aq_parent
-        zope2_tmpl = zope2_wrapper.__of__(context)
-
+        plone = False
         # Naaya groupware integration. If present, use the standard template
         # of the current site
         macro = self.aq_parent.restrictedTraverse('/').get('gw_macro')
+
         if macro:
             try:
                 layout = self.aq_parent.getLayoutTool().getCurrentSkin()
@@ -79,11 +102,19 @@ class TemplateRenderer(Implicit):
             except:
                 main_template = self.aq_parent.restrictedTraverse(
                     'standard_template.pt')
+            main_page_macro = main_template.macros['page']
         else:
             main_template = self.aq_parent.restrictedTraverse(
-                'standard_template.pt')
-        main_page_macro = main_template.macros['page']
-        return zope2_tmpl(main_page_macro=main_page_macro, body_html=body_html)
+                'main_template')
+            plone = True
+            main_page_macro = main_template.macros['master']
+
+        if plone:
+            tmpl = plone5_wrapper.__of__(context)
+        else:
+            tmpl = zope2_wrapper.__of__(context)
+
+        return tmpl(main_page_macro=main_page_macro, body_html=body_html)
 
     def __call__(self, name, **options):
         return self.wrap(self.render(name, **options))
