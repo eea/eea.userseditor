@@ -300,11 +300,11 @@ table.account-datatable thead {
 		StartColorStr='#F7F7F7', EndColorStr='#E4E5E5', GradientType=0);
 	-moz-box-shadow: 0 1px 2px #999999;
 	-webkit-box-shadow: 0px 1px 2px #999999;
-	
+
 	/* text shadow - needed for Internet explorer */
 	height: 1em;
-	filter: Shadow(Color=#EFEFEF, 
-				   Direction=135, 
+	filter: Shadow(Color=#EFEFEF,
+				   Direction=135,
 				   Strength=5);
 	/* Needed for Gecko */
 	line-height: 2em;
@@ -343,7 +343,7 @@ table.account-datatable tr.even {
 
 div.more-actions {
 	width: 100%;
-	
+
 }
 
 div.more-actions a {
@@ -450,3 +450,6 @@ div.filter-section table.account-table:hover {
 	left: 100px;
 }
 
+#main-container table {
+	word-break: unset;
+}

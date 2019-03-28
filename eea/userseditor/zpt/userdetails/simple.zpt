@@ -6,7 +6,7 @@
             href="/++resource++eea.userseditor-www/style.css" />
     </head>
     <body>
-        <div id="content" tal:define="user options/user;
+        <div id="content-details" tal:define="user options/user;
                                       disabled user/status;
                                       can_edit_users common/can_edit_users;
                                       is_authenticated common/is_authenticated;">

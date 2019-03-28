@@ -1,8 +1,24 @@
-<metal:block use-macro="options/main_page_macro">
+<metal:block use-macro="context/main_template/macros/master">
+
+  <metal:block fill-slot="style_slot">
+      <link rel="stylesheet" type="text/css" media="screen"
+            href="/++resource++eea.userseditor-www/style.css"/>
+      <link href="/++resource++eea.ldapadmin-www/selectize/css/selectize.default.css" rel="stylesheet" />
+      <link rel="stylesheet" type="text/css" href="https://www.eionet.europa.eu/styles/eionet2007/screen.css" media="screen" />
+      <link rel="stylesheet" type="text/css" href="https://www.eionet.europa.eu/styles/eionet2007/print.css" media="print" />
+      <link rel="stylesheet" type="text/css" href="https://www.eionet.europa.eu/styles/eionet2007/handheld.css" media="handheld" />
+  </metal:block>
+
+  <metal:block fill-slot="javascript_head_slot">
+      <script src="/++resource++eea.ldapadmin-www/selectize/js/standalone/selectize.min.js"></script>
+      <script type="text/javascript" src="https://www.eionet.europa.eu/styles/eionet2007/pageops.js"></script>
+      <script type="text/javascript" src="https://www.eionet.europa.eu/styles/eionet2007/mark_special_links.js"></script>
+      <script src="/jquery-1.7.1.min.js"></script>
+  </metal:block>
+
   <metal:block fill-slot="main">
-    <link rel="stylesheet" type="text/css" media="screen"
-          href="/++resource++eea.userseditor-www/style.css"/>
-    <!-- <script src="/++resource++eea.userseditor&#45;www/jquery&#45;1.4.4.min.js"></script> -->
-    <tal:block content="structure options/body_html"/>
+    <script src="/++resource++eea.ldapadmin-www/selectize/js/standalone/selectize.min.js"></script>
+
+    <tal:block content="structure options/body_html" />
   </metal:block>
 </metal:block>
