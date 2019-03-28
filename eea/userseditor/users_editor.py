@@ -104,6 +104,9 @@ def _session_pop(request, name, default):
 
 
 def _get_user_password(request):
+    # import pdb; pdb.set_trace()
+    # return request.AUTHENTICATED_USER._getPassword()
+    # return request.form.get('_authenticator')
     return request.AUTHENTICATED_USER.__
 
 
@@ -520,7 +523,10 @@ class UsersEditor(SimpleItem, PropertyManager):
                    'user_info': user_info,
                    'nfp_info': nfp_info}
         email_template = load_template('zpt/nfp_nrc_change_organisation.zpt')
-        email_password_body = email_template.pt_render(options)
+        email_password_body = \
+            email_template.render(nrc_role_info=nrc_role_info,
+                                  user_info=user_info, nfp_info=nfp_info)
+        # email_password_body = email_template.pt_render(options)
         addr_from = "no-reply@eea.europa.eu"
         addr_to = nfp_info['email']
 
@@ -576,14 +582,15 @@ class UsersEditor(SimpleItem, PropertyManager):
             agent.set_user_password(user_id, form['old_password'],
                                     form['new_password'])
 
-            options = {
-                'first_name': user_info['first_name'],
-                'password': form['new_password'],
-                'network_name': NETWORK_NAME,
-            }
+            first_name = user_info['first_name']
+            password = form['new_password']
+            network_name = NETWORK_NAME
 
             email_template = load_template('zpt/email_change_password.zpt')
-            email_password_body = email_template.pt_render(options)
+            email_password_body = email_template.render(target_language=None,
+                    first_name=first_name, password=password,
+                    network_name=network_name)
+            # email_password_body = email_template.pt_render(options)
             addr_from = "no-reply@eea.europa.eu"
             addr_to = user_info['email']
 
@@ -677,6 +684,7 @@ class UsersEditor(SimpleItem, PropertyManager):
             user_id = _get_user_id(REQUEST)
             agent = self._get_ldap_agent(bind=True, write=True)
             try:
+                # import pdb; pdb.set_trace()
                 password = _get_user_password(REQUEST)
                 agent.bind_user(user_id, password)
                 color = (255, 255, 255)
