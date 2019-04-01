@@ -13,24 +13,7 @@
       tal:attributes="action string:${here/absolute_url}/manage_edit_save"
       class="edit-user" method="post">
 
-    <label for="edit-browser_dn">Login DN for unlimited search</label>
-    <input id="edit-browser_dn" name="browser_dn" size="50"
-           tal:attributes="value config/browser_dn|nothing" />
-    <br />
-    <br />
-
-    <label for="edit-browser_pw">Login password</label>
-    <input id="edit-browser_pw" name="browser_pw" type="password" size="50"
-           autocomplete="off" />
-    <br />
-    <br />
-
-    <label for="edit-ldap_server">LDAP server</label>
-    <input id="edit-ldap_server" name="ldap_server" size="50"
-           tal:attributes="value config/ldap_server|nothing" />
-
-    <br />
-    <br />
+    <metal:block use-macro="template/ldap_config_edit_macro" />
 
     <input type="submit" value="Save" />
 </form>

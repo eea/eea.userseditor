@@ -1,5 +1,7 @@
 1.1.39 (unreleased)
 ------------------
+* bind with special user credentials on Eionet User Editor
+  (no longer using authenticated user's credentials) [dumitval]
 
 1.1.38 (2019-03-05)
 ------------------

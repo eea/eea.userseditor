@@ -11,10 +11,7 @@
     <input id="title" type="text" name="title" size="50" value="Profile"/>
     <br/>
 
-    <label for="ldap_server">LDAP server:</label>
-    <input id="ldap_server" type="text" name="ldap_server" size="50"
-           value="ldap2.eionet.europa.eu"/>
-    <br/>
+    <metal:block use-macro="template/ldap_config_edit_macro" />
 
     <input type="submit" value="Add" />
 </form>

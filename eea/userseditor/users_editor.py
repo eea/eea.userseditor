@@ -10,7 +10,6 @@ import deform
 import ldap
 from AccessControl import ClassSecurityInfo
 from AccessControl.Permissions import view, view_management_screens
-from AccessControl.SecurityManagement import getSecurityManager
 from App.class_init import InitializeClass
 from App.config import getConfiguration
 from eea import usersdb
@@ -22,9 +21,10 @@ from ldap import (CONSTRAINT_VIOLATION, INSUFFICIENT_ACCESS, NO_SUCH_OBJECT,
 from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
 from persistent.mapping import PersistentMapping
-from Products.LDAPUserFolder.LDAPUser import LDAPUser
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from z3c.pt.pagetemplate import PageTemplateFile as ChameleonTemplate
+
+from eea.ldapadmin import ldap_config
 
 cfg = getConfiguration()
 cfg.environment.update(os.environ)
@@ -58,13 +58,19 @@ def logged_in_user(request):
 
 
 manage_addUsersEditor_html = PageTemplateFile('zpt/add.zpt', globals())
+manage_addUsersEditor_html.ldap_config_edit_macro = ldap_config.edit_macro
+manage_addUsersEditor_html.config_defaults = lambda: ldap_config.defaults
 
 
 def manage_addUsersEditor(parent, id, title="", ldap_server="", REQUEST=None):
     """ Adds a new Eionet Users Editor object """
-    ob = UsersEditor(title, ldap_server)
-    ob._setId(id)
-    parent._setObject(id, ob)
+
+    form = (REQUEST.form if REQUEST is not None else {})
+    config = ldap_config.read_form(form)
+    obj = UsersEditor(config)
+    obj.title = form.get('title', id)
+    obj._setId(id)
+    parent._setObject(id, obj)
 
     if REQUEST is not None:
         REQUEST.RESPONSE.redirect(parent.absolute_url() + '/manage_workspace')
@@ -101,13 +107,6 @@ def _session_pop(request, name, default):
         return value
     else:
         return default
-
-
-def _get_user_password(request):
-    # import pdb; pdb.set_trace()
-    # return request.AUTHENTICATED_USER._getPassword()
-    # return request.form.get('_authenticator')
-    return request.AUTHENTICATED_USER.__
 
 
 def _get_user_id(request):
@@ -211,19 +210,18 @@ class UsersEditor(SimpleItem, PropertyManager):
          'label': 'Legacy LDAP Server (CIRCA)'},
     )
 
-    def __init__(self, title, ldap_server):
-        self.title = title
-        self.ldap_server = ldap_server
+    def __init__(self, config={}):
+        super(UsersEditor, self).__init__()
+        self._config = PersistentMapping(config)
 
     security.declareProtected(view_management_screens, 'manage_edit')
     manage_edit = PageTemplateFile('zpt/manage_edit.zpt', globals())
+    manage_edit.ldap_config_edit_macro = ldap_config.edit_macro
 
     security.declareProtected(view_management_screens, 'get_config')
 
     def get_config(self):
         config = dict(getattr(self, '_config', {}))
-        config.update({'ldap_server': self.ldap_server})
-
         return config
 
     security.declareProtected(view_management_screens, 'manage_edit_save')
@@ -233,51 +231,16 @@ class UsersEditor(SimpleItem, PropertyManager):
 
         if not getattr(self, '_config', None):
             self._config = {}
-        browser_dn = REQUEST.form.get('browser_dn', '').strip()
-        browser_pw = REQUEST.form.get('browser_pw', '')
-        self.ldap_server = REQUEST.form.get('ldap_server')
-        self._config['browser_dn'] = browser_dn
-
-        if self._config['browser_dn']:
-            if browser_pw:
-                # we don't want to write the password each time we edit
-                # the object, so update only if a password was entered
-                self._config['browser_pw'] = browser_pw
+        self._config.update(ldap_config.read_form(REQUEST.form, edit=True))
         REQUEST.RESPONSE.redirect(self.absolute_url() + '/manage_edit')
 
-    def _get_ldap_agent(self, bind=False, write=False, browser=False):
-
-        # temporary fix while CIRCA is still online
-        current_agent = usersdb.UsersDB(ldap_server=self.ldap_server)
-
-        if write and self.legacy_ldap_server != "":
-            legacy_agent = CircaUsersDB(ldap_server=self.legacy_ldap_server,
-                                        users_dn=CIRCA_USERS_DN_SUFFIX,
-                                        encoding="ISO-8859-1")
-            agent = DualLDAPProxy(current_agent, legacy_agent)
-        else:
-            agent = current_agent
-        agent._author = logged_in_user(self.REQUEST)
-
-        if browser is True:
-            browser_dn = self._config.get('browser_dn')
-            browser_pw = self._config.get('browser_pw')
-
-            if browser_dn and browser_pw:
-                agent.conn.simple_bind_s(browser_dn, browser_pw)
-        elif bind is True:
-            user = getSecurityManager().getUser()
-
-            if isinstance(user, LDAPUser):
-                user_dn = user.getUserDN()
-                user_pwd = user._getPassword()
-
-                if not user_pwd or user_pwd == 'undef':
-                    # This user object did not result from a login
-                    user_dn = user_pwd = ''
-                else:
-                    agent.perform_bind(user_dn, user_pwd)
-
+    def _get_ldap_agent(self, bind=True, secondary=False):
+        agent = ldap_config.ldap_agent_with_config(self._config, bind,
+                                                   secondary=secondary)
+        try:
+            agent._author = logged_in_user(self.REQUEST)
+        except AttributeError:
+            agent._author = "System user"
         return agent
 
     _zope2_wrapper = PageTemplateFile('zpt/zope2_wrapper.zpt', globals())
@@ -335,7 +298,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         if not _is_logged_in(REQUEST):
             return REQUEST.RESPONSE.redirect(self.absolute_url() + '/')
 
-        browser_agent = self._get_ldap_agent(browser=True)
+        browser_agent = self._get_ldap_agent(bind=True)
         orgs = browser_agent.all_organisations()
         orgs = [{'id': k, 'text': v['name'], 'text_native': v['name_native'],
                  'ldap': True} for k, v in orgs.items()]
@@ -432,8 +395,7 @@ class UsersEditor(SimpleItem, PropertyManager):
             msg = u"Please correct the errors below and try again."
             _set_session_message(REQUEST, 'error', msg)
         else:
-            agent = self._get_ldap_agent(bind=True, write=True)
-            agent.bind_user(user_id, _get_user_password(REQUEST))
+            agent = self._get_ldap_agent(bind=True)
 
             with agent.new_action():
                 # make a check if user is changing the organisation
@@ -519,14 +481,10 @@ class UsersEditor(SimpleItem, PropertyManager):
                     raise
 
     def _send_nfp_nrc_email(self, nrc_role_info, user_info, nfp_info):
-        options = {'nrc_role_info': nrc_role_info,
-                   'user_info': user_info,
-                   'nfp_info': nfp_info}
         email_template = load_template('zpt/nfp_nrc_change_organisation.zpt')
         email_password_body = \
             email_template.render(nrc_role_info=nrc_role_info,
                                   user_info=user_info, nfp_info=nfp_info)
-        # email_password_body = email_template.pt_render(options)
         addr_from = "no-reply@eea.europa.eu"
         addr_to = nfp_info['email']
 
@@ -567,7 +525,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         """ view """
         form = REQUEST.form
         user_id = _get_user_id(REQUEST)
-        agent = self._get_ldap_agent(bind=True, write=True)
+        agent = self._get_ldap_agent(bind=True)
         user_info = agent.user_info(user_id)
 
         if form['new_password'] != form['new_password_confirm']:
@@ -587,9 +545,9 @@ class UsersEditor(SimpleItem, PropertyManager):
             network_name = NETWORK_NAME
 
             email_template = load_template('zpt/email_change_password.zpt')
-            email_password_body = email_template.render(target_language=None,
-                    first_name=first_name, password=password,
-                    network_name=network_name)
+            email_password_body = email_template.render(
+                target_language=None, first_name=first_name, password=password,
+                network_name=network_name)
             # email_password_body = email_template.pt_render(options)
             addr_from = "no-reply@eea.europa.eu"
             addr_to = user_info['email']
@@ -682,11 +640,8 @@ class UsersEditor(SimpleItem, PropertyManager):
         if image_file:
             picture_data = image_file.read()
             user_id = _get_user_id(REQUEST)
-            agent = self._get_ldap_agent(bind=True, write=True)
+            agent = self._get_ldap_agent(bind=True)
             try:
-                # import pdb; pdb.set_trace()
-                password = _get_user_password(REQUEST)
-                agent.bind_user(user_id, password)
                 color = (255, 255, 255)
                 picture_data = scale_to(picture_data, WIDTH, HEIGHT, color)
                 success = agent.set_user_picture(user_id, picture_data)
@@ -730,10 +685,8 @@ class UsersEditor(SimpleItem, PropertyManager):
     def remove_picture(self, REQUEST):
         """ Removes existing profile picture for loggedin user """
         user_id = _get_user_id(REQUEST)
-        agent = self._get_ldap_agent(bind=True, write=True)
+        agent = self._get_ldap_agent(bind=True)
         try:
-            password = _get_user_password(REQUEST)
-            agent.bind_user(user_id, password)
             agent.set_user_picture(user_id, None)
         except Exception:
             _set_session_message(REQUEST, 'error', "Something went wrong.")
