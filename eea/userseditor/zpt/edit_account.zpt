@@ -9,7 +9,7 @@
 </h1>
 
 <div class="account-links">
-    <a tal:attributes="href string:${options/base_url}/" class="button"
+    <a tal:attributes="href string:${options/base_url}/" class="btn btn-secondary"
        title="Back to account information">
         <img src="/++resource++eea.userseditor-www/back.png" class="middle-image image12"
              alt="" title="Back to account information" />
@@ -17,14 +17,14 @@
     </a>
     &nbsp;
     <a tal:attributes="href string:${options/base_url}/change_password_html"
-       class="button" title="Change your account password">
+       class="btn btn-secondary" title="Change your account password">
         <img src="/++resource++eea.userseditor-www/lock.png" class="middle-image image12"
              alt="" title="Edit account settings" />
         Change password
     </a>
     &nbsp;
     <a tal:attributes="href string:${options/base_url}/profile_picture_html"
-       class="button" title="Select your profile picture">
+       class="btn btn-secondary" title="Select your profile picture">
         <img src="/++resource++eea.userseditor-www/picture.png" class="middle-image image12"
              alt="" title="Select profile picture" />
         Profile Picture
@@ -67,7 +67,7 @@
   <tr>
     <td colspan="2" align="center">
       <input type="submit" value="Apply changes" name="submit"
-             class="primary-button" />
+             class="btn btn-primary" />
     </td>
   </tr>
 </table>
@@ -131,13 +131,13 @@
                 tal:content="field/value"></textarea>
 
     <select tal:condition="is_select"
-        tal:attributes="id field_id; 
+        tal:attributes="id field_id;
                         name string:${field/name}:utf8:ustring"
                         >
         <tal:def tal:define="choices python:field['widget'].values">
-            <option 
-                tal:repeat="ch choices" 
-                tal:attributes="value python:ch[0]; selected python:ch[0] == field['value']" 
+            <option
+                tal:repeat="ch choices"
+                tal:attributes="value python:ch[0]; selected python:ch[0] == field['value']"
                 tal:content="python: ch[1]">1</option>
         </tal:def>
     </select>
