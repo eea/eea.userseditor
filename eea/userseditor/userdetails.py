@@ -1,20 +1,22 @@
+import json
+import logging
+import os
+from datetime import datetime, timedelta
+
+from zope.component import getMultiAdapter
+
 from AccessControl import ClassSecurityInfo  # , Unauthorized
 from AccessControl.Permissions import view_management_screens
 from Acquisition import Implicit
 from App.config import getConfiguration
 from DateTime import DateTime
-from datetime import datetime, timedelta
-from OFS.SimpleItem import SimpleItem
+from eea.ldapadmin import ldap_config
 from OFS.PropertyManager import PropertyManager
+from OFS.SimpleItem import SimpleItem
+from persistent.mapping import PersistentMapping
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from z3c.pt.pagetemplate import PageTemplateFile as ChameleonTemplate
-from persistent.mapping import PersistentMapping
-from zope.component import getMultiAdapter
-import json
-import logging
-import os
 from zExceptions import NotFound
-from eea.ldapadmin import ldap_config
 
 cfg = getConfiguration()
 cfg.environment.update(os.environ)
@@ -138,6 +140,7 @@ class CommonTemplateLogic(object):
 
     def can_edit_users(self):
         user = self.context.REQUEST.AUTHENTICATED_USER
+
         return bool(user.has_permission(eionet_edit_users, self.context))
 
     @property
@@ -147,14 +150,18 @@ class CommonTemplateLogic(object):
     @property
     def network_name(self):
         """ E.g. EIONET, SINAnet etc. """
+
         return NETWORK_NAME
 
 
 def logged_in_user(request):
     user_id = ''
+
     if _is_authenticated(request):
         user = request.get('AUTHENTICATED_USER', '')
-        user_id = str(user.id)
+
+        if user:
+            user_id = user.getId()
 
     return user_id
 
@@ -180,6 +187,7 @@ class UserDetails(SimpleItem):
 
     def get_config(self):
         config = dict(getattr(self, '_config', {}))
+
         return config
 
     security.declareProtected(view_management_screens, 'manage_edit_save')
@@ -200,6 +208,7 @@ class UserDetails(SimpleItem):
             agent._author = logged_in_user(self.REQUEST)
         except AttributeError:
             agent._author = "System user"
+
         return agent
 
     def _prepare_user_page(self, uid):
@@ -210,23 +219,27 @@ class UserDetails(SimpleItem):
                                                     uid,
                                                     ('description',)))
         roles = []
+
         for (role_id, attrs) in ldap_roles:
             roles.append((role_id,
                           attrs.get('description', ('', ))[0].decode('utf8')))
         user = agent.user_info(uid)
         user['jpegPhoto'] = agent.get_profile_picture(uid)
         user['certificate'] = agent.get_certificate(uid)
+
         if user['organisation']:
             if user['organisation'] == 'eea':
                 user['organisation'] = 'eu_eea'
             org_info = agent.org_info(user['organisation'])
             org_id = org_info.get('id')
+
             if 'INVALID' in org_id:
                 user['organisation'] = org_id.decode('utf8')
             user['organisation_title'] = org_info['name']
         else:
             user['organisation_title'] = ''
         pwdChangedTime = user['pwdChangedTime']
+
         if pwdChangedTime:
             pwdChangedTime = datetime.strptime(pwdChangedTime, '%Y%m%d%H%M%SZ')
             user['pwdChanged'] = pwdChangedTime.strftime('%Y-%m-%d %H:%M:%S')
@@ -235,6 +248,7 @@ class UserDetails(SimpleItem):
         else:
             user['pwdChanged'] = ''
             user['pwdExpired'] = True
+
         return user, roles
 
     security.declarePublic("index_html")
@@ -242,8 +256,10 @@ class UserDetails(SimpleItem):
     def index_html(self, REQUEST):
         """ """
         uid = REQUEST.form.get('uid')
+
         if not uid:
             # a missing uid can only mean this page is called by accident
+
             return
         date_for_roles = REQUEST.form.get('date_for_roles')
 
@@ -264,6 +280,7 @@ class UserDetails(SimpleItem):
         log_entries = list(reversed(agent._get_metadata(user_dn)))
         VIEWS = {}
         filtered_roles = set([info[0] for info in roles])   # + owner_roles)
+
         if date_for_roles:
             filter_date = DateTime(date_for_roles).asdatetime().date()
         else:
@@ -273,6 +290,7 @@ class UserDetails(SimpleItem):
             date = DateTime(entry['timestamp']).toZone("CET")
             entry['timestamp'] = date.ISO()
             view = VIEWS.get(entry['action'])
+
             if not view:
                 view = getMultiAdapter((self, self.REQUEST),
                                        name="details_" + entry['action'])
@@ -281,6 +299,7 @@ class UserDetails(SimpleItem):
 
             _roles = entry.get('data', {}).get('roles')
             _role = entry.get('data', {}).get('role')
+
             if date.asdatetime().date() >= filter_date:
                 if entry['action'] == 'ENABLE_ACCOUNT':
                     filtered_roles.difference_update(set(_roles))
@@ -294,15 +313,19 @@ class UserDetails(SimpleItem):
                         filtered_roles.add(_role)
 
         output = []
+
         for entry in log_entries:
             if output:
                 last_entry = output[-1]
                 check = ['author', 'action']
                 flag = True
+
                 for k in check:
                     if last_entry[k] != entry[k]:
                         flag = False
+
                         break
+
                 if flag:
                     last_entry['data'].append(entry['data'])
                 else:
@@ -313,12 +336,15 @@ class UserDetails(SimpleItem):
                 output.append(entry)
 
         removed_roles = []
+
         if user.get('status') == 'disabled':
             auth_user = self.REQUEST.AUTHENTICATED_USER
+
             if not bool(auth_user.has_permission(eionet_edit_users, self)):
                 raise NotFound("User '%s' does not exist" % uid)
             # process log entries to list the roles the user had before
             # being disabled
+
             for entry in log_entries:
                 if entry['action'] == 'DISABLE_ACCOUNT':
                     for role in entry['data'][0]['roles']:
@@ -329,6 +355,7 @@ class UserDetails(SimpleItem):
                             role_description = ("This role doesn't exist "
                                                 "anymore")
                         removed_roles.append((role, role_description))
+
                     break
 
         return self._render_template(
@@ -343,6 +370,7 @@ class UserDetails(SimpleItem):
         uid = REQUEST.form.get('uid')
         user, roles = self._prepare_user_page(uid)
         tr = TemplateRenderer(CommonTemplateLogic)
+
         return tr.__of__(self).render("zpt/userdetails/simple.zpt",
                                       user=user, roles=roles)
 
@@ -353,6 +381,7 @@ class UserDetails(SimpleItem):
         uid = REQUEST.form.get('uid')
         agent = self._get_ldap_agent()
         REQUEST.RESPONSE.setHeader('Content-Type', 'image/jpeg')
+
         return agent.get_profile_picture(uid)
 
     security.declarePublic("usercertificate")
@@ -362,6 +391,7 @@ class UserDetails(SimpleItem):
         uid = REQUEST.form.get('uid')
         agent = self._get_ldap_agent()
         REQUEST.RESPONSE.setHeader('Content-Type', 'application/pkix-cert')
+
         return agent.get_certificate(uid)
 
     security.declarePublic("get_user_orgs")
@@ -369,8 +399,10 @@ class UserDetails(SimpleItem):
     def get_user_orgs(self, user_id=None):
         """ Convenience method to be used in the /directory/ folder of EIONET
         """
+
         if user_id is None:
             user_id = self.REQUEST.form.get('uid')
 
         agent = self._get_ldap_agent()
+
         return agent.orgs_for_user(user_id)

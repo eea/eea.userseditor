@@ -13,8 +13,10 @@ from AccessControl.Permissions import view, view_management_screens
 from App.class_init import InitializeClass
 from App.config import getConfiguration
 from eea import usersdb
+from eea.ldapadmin import ldap_config
 from eea.ldapadmin.nfp_nrc import get_nfps_for_country, get_nrc_roles
 from eea.ldapadmin.roles_editor import role_members
+from eea.usersdb.db_agent import UserNotFound
 from image_processor import scale_to
 from ldap import (CONSTRAINT_VIOLATION, INSUFFICIENT_ACCESS, NO_SUCH_OBJECT,
                   SCOPE_BASE)
@@ -22,9 +24,8 @@ from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
 from persistent.mapping import PersistentMapping
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
+from Products.statusmessages.interfaces import IStatusMessage
 from z3c.pt.pagetemplate import PageTemplateFile as ChameleonTemplate
-
-from eea.ldapadmin import ldap_config
 
 cfg = getConfiguration()
 cfg.environment.update(os.environ)
@@ -34,9 +35,6 @@ NETWORK_NAME = getattr(cfg, 'environment', {}).get('NETWORK_NAME', 'Eionet')
 user_info_schema = usersdb.user_info_schema.clone()
 user_info_schema['postal_address'].widget = deform.widget.TextAreaWidget()
 
-SESSION_MESSAGES = 'eea.userseditor.messages'
-SESSION_FORM_DATA = 'eea.userseditor.form_data'
-SESSION_FORM_ERRORS = 'eea.userseditor.form_errors'
 log = logging.getLogger(__name__)
 
 WIDTH = 128
@@ -52,7 +50,9 @@ def logged_in_user(request):
 
     if _is_authenticated(request):
         user = request.get('AUTHENTICATED_USER', '')
-        user_id = user.id
+
+        if user:
+            user_id = user.getId()
 
     return user_id
 
@@ -74,39 +74,6 @@ def manage_addUsersEditor(parent, id, title="", ldap_server="", REQUEST=None):
 
     if REQUEST is not None:
         REQUEST.RESPONSE.redirect(parent.absolute_url() + '/manage_workspace')
-
-
-def _get_session_messages(request):
-    session = request.SESSION
-
-    if SESSION_MESSAGES in session.keys():
-        msgs = dict(session[SESSION_MESSAGES])
-        del session[SESSION_MESSAGES]
-    else:
-        msgs = {}
-
-    return msgs
-
-
-def _set_session_message(request, msg_type, msg):
-    session = request.SESSION
-
-    if SESSION_MESSAGES not in session.keys():
-        session[SESSION_MESSAGES] = PersistentMapping()
-    # TODO: allow for more than one message of each type
-    session[SESSION_MESSAGES][msg_type] = msg
-
-
-def _session_pop(request, name, default):
-    session = request.SESSION
-
-    if name in session.keys():
-        value = session[name]
-        del session[name]
-
-        return value
-    else:
-        return default
 
 
 def _get_user_id(request):
@@ -222,6 +189,7 @@ class UsersEditor(SimpleItem, PropertyManager):
 
     def get_config(self):
         config = dict(getattr(self, '_config', {}))
+
         return config
 
     security.declareProtected(view_management_screens, 'manage_edit_save')
@@ -241,6 +209,7 @@ class UsersEditor(SimpleItem, PropertyManager):
             agent._author = logged_in_user(self.REQUEST)
         except AttributeError:
             agent._author = "System user"
+
         return agent
 
     _zope2_wrapper = PageTemplateFile('zpt/zope2_wrapper.zpt', globals())
@@ -283,16 +252,18 @@ class UsersEditor(SimpleItem, PropertyManager):
         if _is_logged_in(REQUEST):
             agent = self._get_ldap_agent(bind=True)
             user_id = _get_user_id(REQUEST)
-            options['user_info'] = agent.user_info(user_id)
+            try:
+                options['user_info'] = agent.user_info(user_id)
+            except UserNotFound:        # this happens when using Zope user
+                options['user_info'] = None
         else:
             options['user_info'] = None
-        options.update(_get_session_messages(REQUEST))
 
         return self._render_template('zpt/index.zpt', **options)
 
     security.declareProtected(view, 'edit_account_html')
 
-    def edit_account_html(self, REQUEST):
+    def edit_account_html(self, REQUEST, form_data=None, errors=None):
         """ view """
 
         if not _is_logged_in(REQUEST):
@@ -306,11 +277,10 @@ class UsersEditor(SimpleItem, PropertyManager):
         agent = self._get_ldap_agent(bind=True)
         user_id = _get_user_id(REQUEST)
 
-        errors = _session_pop(REQUEST, SESSION_FORM_ERRORS, {})
-        form_data = _session_pop(REQUEST, SESSION_FORM_DATA, None)
-
         if form_data is None:
             form_data = agent.user_info(user_id)
+
+        errors = errors or {}
 
         user_orgs = list(agent.user_organisations(user_id))
 
@@ -370,7 +340,6 @@ class UsersEditor(SimpleItem, PropertyManager):
             'schema': schema,
             'invalid_nrcs': invalid_nrcs,
         }
-        options.update(_get_session_messages(REQUEST))
 
         return self._render_template('zpt/edit_account.zpt', **options)
 
@@ -378,6 +347,10 @@ class UsersEditor(SimpleItem, PropertyManager):
 
     def edit_account(self, REQUEST):
         """ view """
+
+        if REQUEST.method == 'GET':
+            return self.edit_account_html(REQUEST)
+
         user_id = _get_user_id(REQUEST)
 
         user_form = deform.Form(user_info_schema)
@@ -385,15 +358,15 @@ class UsersEditor(SimpleItem, PropertyManager):
         try:
             new_info = user_form.validate(REQUEST.form.items())
         except deform.ValidationFailure, e:
-            session = REQUEST.SESSION
             errors = {}
 
             for field_error in e.error.children:
                 errors[field_error.node.name] = field_error.msg
-            session[SESSION_FORM_ERRORS] = errors
-            session[SESSION_FORM_DATA] = dict(REQUEST.form)
+
             msg = u"Please correct the errors below and try again."
-            _set_session_message(REQUEST, 'error', msg)
+            IStatusMessage(REQUEST).add(msg, type='error')
+
+            return self.edit_account_html(REQUEST, REQUEST.form, errors)
         else:
             agent = self._get_ldap_agent(bind=True)
 
@@ -440,8 +413,8 @@ class UsersEditor(SimpleItem, PropertyManager):
                 agent.set_user_info(user_id, new_info)
 
             when = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            _set_session_message(REQUEST, 'message',
-                                 "Profile saved (%s)" % when)
+            IStatusMessage(REQUEST).add("Profile saved (%s)" % when,
+                                        type='info')
 
         REQUEST.RESPONSE.redirect(self.absolute_url() + '/edit_account_html')
 
@@ -517,7 +490,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         return self._render_template('zpt/change_password.zpt',
                                      user_id=_get_user_id(REQUEST),
                                      base_url=self.absolute_url(),
-                                     **_get_session_messages(REQUEST))
+                                     )
 
     security.declareProtected(view, 'change_password')
 
@@ -529,8 +502,8 @@ class UsersEditor(SimpleItem, PropertyManager):
         user_info = agent.user_info(user_id)
 
         if form['new_password'] != form['new_password_confirm']:
-            _set_session_message(REQUEST, 'error',
-                                 "New passwords do not match")
+            IStatusMessage(REQUEST).add("New passwords do not match",
+                                        type='error')
 
             return REQUEST.RESPONSE.redirect(self.absolute_url() +
                                              '/change_password_html')
@@ -567,7 +540,7 @@ class UsersEditor(SimpleItem, PropertyManager):
                 mailer.send(addr_from, [addr_to], message)
 
         except ValueError:
-            _set_session_message(REQUEST, 'error', "Old password is wrong")
+            IStatusMessage(REQUEST).add("Old password is wrong", type='error')
 
             return REQUEST.RESPONSE.redirect(self.absolute_url() +
                                              '/change_password_html')
@@ -586,7 +559,7 @@ class UsersEditor(SimpleItem, PropertyManager):
                     message = e.message['info']
             else:
                 message = e.message['info']
-            _set_session_message(REQUEST, 'error', message)
+            IStatusMessage(REQUEST).add(message, type='error')
 
             return REQUEST.RESPONSE.redirect(self.absolute_url() +
                                              '/change_password_html')
@@ -626,7 +599,7 @@ class UsersEditor(SimpleItem, PropertyManager):
                                      base_url=self.absolute_url(),
                                      has_current_image=has_image,
                                      here=self,
-                                     **_get_session_messages(REQUEST))
+                                     )
 
     security.declareProtected(view, 'profile_picture')
 
@@ -636,6 +609,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         if not _is_logged_in(REQUEST):
             return REQUEST.RESPONSE.redirect(self.absolute_url() + '/')
         image_file = REQUEST.form.get('image_file', None)
+        msgs = IStatusMessage(REQUEST)
 
         if image_file:
             picture_data = image_file.read()
@@ -646,21 +620,18 @@ class UsersEditor(SimpleItem, PropertyManager):
                 picture_data = scale_to(picture_data, WIDTH, HEIGHT, color)
                 success = agent.set_user_picture(user_id, picture_data)
             except ValueError:
-                _set_session_message(REQUEST, 'error',
-                                     "Error updating picture")
+                msgs.add("Error updating picture", type='error')
 
                 return REQUEST.RESPONSE.redirect(self.absolute_url() +
                                                  '/profile_picture_html')
 
             if success:
                 success_text = "That's a beautiful picture."
-                _set_session_message(REQUEST, 'message', success_text)
+                msgs.add(success_text, type='info')
             else:
-                _set_session_message(REQUEST, 'error',
-                                     "Error updating picture.")
+                msgs.add("Error updating picture", type='error')
         else:
-            _set_session_message(REQUEST, 'error',
-                                 "You must provide a JPG file.")
+            msgs.add("You must provide a JPG file.", type='error')
 
         return REQUEST.RESPONSE.redirect(self.absolute_url() +
                                          '/profile_picture_html')
@@ -686,12 +657,13 @@ class UsersEditor(SimpleItem, PropertyManager):
         """ Removes existing profile picture for loggedin user """
         user_id = _get_user_id(REQUEST)
         agent = self._get_ldap_agent(bind=True)
+        msgs = IStatusMessage(REQUEST)
         try:
             agent.set_user_picture(user_id, None)
         except Exception:
-            _set_session_message(REQUEST, 'error', "Something went wrong.")
+            msgs.add("Something went wrong.", type='error')
         else:
-            _set_session_message(REQUEST, 'message', "No image for you.")
+            msgs.add("No image for you.", type='info')
 
         return REQUEST.RESPONSE.redirect(self.absolute_url() +
                                          '/profile_picture_html')

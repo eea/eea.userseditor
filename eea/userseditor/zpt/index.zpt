@@ -9,24 +9,24 @@
 
 <p class="not-logged-in" tal:condition="not: options/user_info">
     You must be authenticated to edit your profile.
-    Please <a href="/loggedin">log in</a>.
+    Please <a href="/login">log in</a>.
 </p>
 
 <tal:block define="data options/user_info" condition="data">
 <p>
 
 <div class="account-links">
-    <a class="button" tal:attributes="href string:${options/base_url}/edit_account_html" title="Edit account settigns">
+    <a class="button" tal:attributes="href string:${options/base_url}/edit_account" title="Edit account settigns">
         <img src="/++resource++eea.userseditor-www/settings.png" class="middle-image image12" alt="" title="Edit account settings" />
         Account settings
     </a>
     &nbsp;
-    <a tal:attributes="href string:${options/base_url}/change_password_html" class="button" title="Change your account password">
+    <a tal:attributes="href string:${options/base_url}/change_password" class="button" title="Change your account password">
         <img src="/++resource++eea.userseditor-www/lock.png" class="middle-image image12" alt="" title="Edit account settings" />
         Change password
     </a>
     &nbsp;
-    <a tal:attributes="href string:${options/base_url}/profile_picture_html"
+    <a tal:attributes="href string:${options/base_url}/profile_picture"
        class="button" title="Select your profile picture">
         <img src="/++resource++eea.userseditor-www/picture.png" class="middle-image image12"
              alt="" title="Select profile picture" />
