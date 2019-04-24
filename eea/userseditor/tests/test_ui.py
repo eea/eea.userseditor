@@ -11,15 +11,19 @@ from eea.userseditor.users_editor import (SESSION_MESSAGES, SESSION_FORM_DATA,
                                           SESSION_FORM_ERRORS)
 from eea.usersdb.schema import INVALID_PHONE_MESSAGE, INVALID_URL
 
+
 def plaintext(element):
     import re
     return re.sub(r'\s\s+', ' ', element.text_content()).strip()
 
+
 def parse_html(html):
     return fromstring(re.sub(r'\s+', ' ', html))
 
+
 def session_messages(request):
     return request.SESSION.get(SESSION_MESSAGES)
+
 
 user_data_fixture = {
     'first_name': u"Joe",
@@ -33,6 +37,9 @@ user_data_fixture = {
     'fax': u"+45 555 6789",
     'organisation': u"My company",
 }
+
+ORG_BY_ID = 'by_id'
+
 
 class MockLdapAgent(Mock):
     def __init__(self, *args, **kwargs):
@@ -57,16 +64,19 @@ class StubbedUsersEditor(UsersEditor):
     def absolute_url(self):
         return "URL"
 
+
 def mock_user(user_id, user_pw):
     user = Mock()
     user.getId.return_value = user_id
     user.__ = user_pw
     return user
 
+
 def mock_request():
     request = Mock()
     request.SESSION = {}
     return request
+
 
 class AccountUITest(unittest.TestCase):
     def setUp(self):
@@ -93,7 +103,7 @@ class AccountUITest(unittest.TestCase):
         self.assertEqual(val('//form//input[@name="url:utf8:ustring"]'),
                          user_data_fixture['url'])
         self.assertEqual(txt('//form//textarea'
-                                '[@name="postal_address:utf8:ustring"]'),
+                             '[@name="postal_address:utf8:ustring"]'),
                          "13 Smithsonian Way, Copenhagen, DK")
         self.assertEqual(val('//form//input[@name="phone:utf8:ustring"]'),
                          user_data_fixture['phone'])
@@ -111,7 +121,7 @@ class AccountUITest(unittest.TestCase):
 
         self.mock_agent.bind_user.assert_called_with('jsmith', 'asdf')
         self.request.RESPONSE.redirect.assert_called_with(
-                'URL/edit_account_html')
+            'URL/edit_account_html')
         self.mock_agent.set_user_info.assert_called_with('jsmith',
                                                          user_data_fixture)
 
@@ -128,11 +138,11 @@ class AccountUITest(unittest.TestCase):
         self.assertEqual(txt('//h1'), "EIONET account Change password")
         self.assertEqual(txt('//p/tt'), "jsmith")
         self.assertTrue(exists('//form//input[@type="password"]'
-                                            '[@name="old_password"]'))
+                               '[@name="old_password"]'))
         self.assertTrue(exists('//form//input[@type="password"]'
-                                            '[@name="new_password"]'))
+                               '[@name="new_password"]'))
         self.assertTrue(exists('//form//input[@type="password"]'
-                                            '[@name="new_password_confirm"]'))
+                               '[@name="new_password_confirm"]'))
 
     def test_submit_new_password(self):
         self.request.form = {
@@ -147,13 +157,14 @@ class AccountUITest(unittest.TestCase):
         self.mock_agent.set_user_password.assert_called_with('jsmith',
                                                              "asdf", "zxcv")
         self.request.RESPONSE.redirect.assert_called_with(
-                'URL/password_changed_html')
+            'URL/password_changed_html')
 
         page = parse_html(self.ui.password_changed_html(self.request))
 
         txt = lambda xp: page.xpath(xp)[0].text.strip()
-        self.assertEqual(txt('//div[@class="system-msg"]'),
-                 "Password changed successfully. You must log in again.")
+        self.assertEqual(
+            txt('//div[@class="system-msg"]'),
+            "Password changed successfully. You must log in again.")
 
     def test_submit_new_password_bad_old_password(self):
         self.request.form = {
@@ -168,7 +179,7 @@ class AccountUITest(unittest.TestCase):
         self.mock_agent.bind_user.assert_called_with('jsmith', 'qwer')
         assert self.mock_agent.set_user_password.call_count == 0
         self.request.RESPONSE.redirect.assert_called_with(
-                'URL/change_password_html')
+            'URL/change_password_html')
 
         page = parse_html(self.ui.change_password_html(self.request))
 
@@ -187,13 +198,14 @@ class AccountUITest(unittest.TestCase):
 
         assert self.mock_agent.set_user_password.call_count == 0
         self.request.RESPONSE.redirect.assert_called_with(
-                'URL/change_password_html')
+            'URL/change_password_html')
 
         page = parse_html(self.ui.change_password_html(self.request))
 
         txt = lambda xp: page.xpath(xp)[0].text.strip()
         self.assertEqual(txt('//div[@class="error-msg"]'),
                          "New passwords do not match")
+
 
 class NotLoggedInTest(unittest.TestCase):
     def setUp(self):
@@ -226,6 +238,7 @@ class NotLoggedInTest(unittest.TestCase):
         self.request.RESPONSE.redirect.assert_called_with('URL/')
         self._assert_error_msg_on_index()
 
+
 class EditOrganisationTest(unittest.TestCase):
     def setUp(self):
         self.ui = StubbedUsersEditor()
@@ -241,8 +254,9 @@ class EditOrganisationTest(unittest.TestCase):
 
         page = parse_html(self.ui.edit_account_html(self.request))
 
-        literal_input = page.xpath('//form'
-                                   '//input[@name="organisation:utf8:ustring"]')
+        literal_input = page.xpath(
+            '//form'
+            '//input[@name="organisation:utf8:ustring"]')
         self.assertEqual(len(literal_input), 1)
         self.assertEqual(literal_input[0].attrib['value'], u"My club")
 
@@ -280,7 +294,7 @@ class EditOrganisationTest(unittest.TestCase):
 
         self.ui.edit_account(self.request)
 
-        user_info = dict( (name, u"") for name in user_data_fixture )
+        user_info = dict((name, u"") for name in user_data_fixture)
         user_info['organisation'] = (ORG_BY_ID, 'bridge_club')
         self.mock_agent.set_user_info.assert_called_with('jsmith', user_info)
 
@@ -299,7 +313,7 @@ class EditValidationTest(unittest.TestCase):
         self.ui.edit_account(self.request)
 
         self.request.RESPONSE.redirect.assert_called_with(
-                'URL/edit_account_html')
+            'URL/edit_account_html')
         msg = u"Please correct the errors below and try again."
         self.assertEqual(session_messages(self.request), {'error': msg})
 
@@ -348,7 +362,7 @@ class EditValidationTest(unittest.TestCase):
 
     def test_error_messages(self):
         errors = dict((name, "ERROR %s HERE" % name)
-                       for name in user_data_fixture)
+                      for name in user_data_fixture)
         self.request.SESSION.update({
             SESSION_FORM_DATA: dict(user_data_fixture),
             SESSION_FORM_ERRORS: dict(errors),
