@@ -233,13 +233,13 @@
                         <tbody>
                             <tal:block repeat="role options/roles">
                                 <tr tal:condition="python: role[0] in options['filtered_roles']"
-                                    tal:attributes="class python:('even', 'odd')[int(path('repeat/role/odd'))]">
+                                    tal:attributes="class python:'odd' if path('repeat/role/odd') else 'even'">
                                     <td tal:content="python: role[0]" nowrap="nowrap" />
                                     <td tal:content="python: role[1]" />
                                 </tr>
                             </tal:block>
                             <tal:block repeat="role options/removed_roles">
-                                <tr tal:attributes="class python:('even', 'odd')[int(path('repeat/role/odd'))]">
+                                <tr tal:attributes="class python:'odd' if path('repeat/role/odd') else 'even'">
                                     <td tal:content="python: role[0]" nowrap="nowrap" />
                                     <td tal:content="python: role[1]" />
                                 </tr>
