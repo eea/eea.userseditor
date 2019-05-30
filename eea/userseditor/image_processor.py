@@ -21,6 +21,7 @@ def scaled_size(im, width, height):
         new_w = round(im_ratio * new_h)
     return (int(new_w), int(new_h))
 
+
 def scale_to(filedata, width, height, fill_color):
     """
     Scales image to width X heigth px, maintaining aspect ratio by filling
@@ -35,7 +36,7 @@ def scale_to(filedata, width, height, fill_color):
     im = im.resize(photo_size, Image.ANTIALIAS)
 
     final_im = Image.new("RGB", (width, height), fill_color)
-    paste_pos = ((width-photo_size[0])/2, (height-photo_size[1])/2)
+    paste_pos = ((width - photo_size[0]) / 2, (height - photo_size[1]) / 2)
     final_im.paste(im, paste_pos)
 
     new_image = StringIO()
