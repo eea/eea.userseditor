@@ -133,8 +133,7 @@
                     <tr><th scope="row" class="scope-row">Postal</th>
                         <td tal:content="user/postal_address" /></tr>
                 </tal:block>
-                <tr><th scope="row" class="scope-row">Userid</th>
-                    <td tal:content="user/uid" /></tr>
+
                 <tal:block condition="user/certificate">
                     <tr><th scope="row" class="scope-row">Authentication</th>
                         <td>
@@ -146,6 +145,8 @@
                 <tal:block condition="can_edit_users">
                     <tr tal:condition="not: disabled">
                         <td colspan="2"><em>Available to Managers only</em></td></tr>
+                    <tr><th scope="row" class="scope-row">Userid</th>
+                        <td tal:content="user/uid" /></tr>
                     <tr><th scope="row" class="scope-row">Created</th>
                         <td tal:content="user/createTimestamp" /></tr>
                     <tr><th scope="row" class="scope-row">Modified</th>
@@ -156,13 +157,13 @@
                 </tal:block>
             </table>
 
-            <p tal:condition="python: not disabled or can_edit_users">
+            <p tal:condition="python: not disabled and can_edit_users">
                 Linked data URL: <a type="application/rdf+xml"
                     tal:attributes="href string:${common/portal_url}/users/${user/uid}"
                     tal:content="string:${common/portal_url}/users/${user/uid}" />.
             </p>
 
-            <tal:block condition="python: not disabled and not can_edit_users">
+            <!-- <tal:block condition="python: not disabled and not can_edit_users">
                 <h2>
                     <form method="GET" action="./user" id="show_roles" tal:condition="is_authenticated">
                         <input type="hidden" name="uid" tal:attributes="value string:${user/uid}" />
@@ -200,7 +201,7 @@
                     <p>This member does not belong to any Roles.</p>
                 </tal:block>
                 <div class="clear"></div>
-            </tal:block>
+            </tal:block> -->
 
 
             <div tal:condition="can_edit_users">
