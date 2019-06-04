@@ -333,6 +333,16 @@ class UsersEditor(SimpleItem, PropertyManager):
             if not org_info or org_info.get('country') != country_code:
                 invalid_nrcs.append(nrc_role_info)
 
+        if '/profile/profile-editor/' in REQUEST.URL:
+            to_remove = []
+            for node in schema.children:
+                if node.name in ['search_helper', 'reasonToCreate']:
+                    to_remove.append(node)
+            schema.children = [child
+                for child in schema.children
+                if child not in to_remove
+            ]
+
         options = {
             'base_url': self.absolute_url(),
             'form_data': form_data,
