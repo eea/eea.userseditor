@@ -36,6 +36,8 @@
 
 <p>Your account information:</p>
 
+<p>Password last changed on <tal:block content="data/pwdChanged" /> (<span class="error-hint" tal:condition="data/pwdExpired">expired on</span><tal:block condition="not:data/pwdExpired">will expire on</tal:block> <tal:block content="data/pwdExpire" />)</p>
+
 <table class="account-table">
   <tr>
     <th>First name:</th>

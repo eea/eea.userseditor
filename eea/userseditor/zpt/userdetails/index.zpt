@@ -66,7 +66,7 @@
                 <tal:block content="user/full_name" />
                 <a tal:condition="can_edit_users"
                     style="background:none"
-                    tal:attributes="href string:/eionet-account-tools/eionet_account_tools/users/edit_user?id=${user/uid}">
+                    tal:attributes="href string:${common/portal_url}/eionet-account-tools/eionet_account_tools/users/edit_user?id=${user/uid}">
                     <img src="/++resource++eea.userseditor-www/edit.gif" alt="Edit" />
                 </a>
             </h1>
@@ -107,7 +107,7 @@
                   <td>
                     <tal:block condition="python:user['organisation_title'] and can_edit_users">
                       <a tal:content="user/organisation_title"
-                        tal:attributes="href string:http://eionet.europa.eu/eionet_account_tools/organisations/organisation?id=${user/organisation}" />
+                        tal:attributes="href string:${common/portal_url}/eionet-account-tools/eionet_account_tools/organisations/organisation?id=${user/organisation}" />
                       <tal:block content="string:(${user/organisation})" />
                     </tal:block>
                     <tal:block condition="python:user['organisation_title'] and not can_edit_users"
@@ -154,55 +154,15 @@
                     <tr><th scope="row" class="scope-row">Password last changed</th>
                         <td tal:attributes="class python:'error-hint' if user['pwdExpired'] and not disabled else ''"
                           tal:content="user/pwdChanged" /></tr>
+                    <tal:block condition="user/certificate">
+                        <tr><th scope="row" class="scope-row">Authentication</th>
+                            <td>
+                                <a tal:attributes="href string:${common/base_url}/usercertificate?uid=${user/uid}">PKI Certificate</a>
+                            </td>
+                        </tr>
+                    </tal:block>
                 </tal:block>
             </table>
-
-            <p tal:condition="python: not disabled and can_edit_users">
-                Linked data URL: <a type="application/rdf+xml"
-                    tal:attributes="href string:${common/portal_url}/users/${user/uid}"
-                    tal:content="string:${common/portal_url}/users/${user/uid}" />.
-            </p>
-
-            <!-- <tal:block condition="python: not disabled and not can_edit_users">
-                <h2>
-                    <form method="GET" action="./user" id="show_roles" tal:condition="is_authenticated">
-                        <input type="hidden" name="uid" tal:attributes="value string:${user/uid}" />
-                        <label for="date_for_roles">At date:</label>
-                        <input type="text" name="date_for_roles" id="datepicker" class="hasDatePicker"
-                            tal:attributes="value python:options['context'].REQUEST.form.get('date_for_roles')" />
-                        <input type="submit" value="Submit" />
-                    </form>
-                    Member of Groups - Eionet Directory Roles</h2>
-                <tal:block condition="options/roles">
-                    <table class="account-datatable sub-roles">
-                        <thead>
-                            <tr>
-                                <td>
-                                    Role ID
-                                </td>
-                                <td>
-                                    Role name
-                                </td>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tal:block repeat="role options/roles">
-                                <tr tal:condition="python: role[0] in options['filtered_roles']"
-                                    tal:attributes="class python:('even', 'odd')[int(path('repeat/role/odd'))]">
-                                    <td tal:content="python: role[0]" nowrap="nowrap" />
-                                    <td tal:content="python: role[1]" />
-                                </tr>
-                            </tal:block>
-                        </tbody>
-                    </table>
-                </tal:block>
-
-                <tal:block condition="not: options/roles">
-                    <p>This member does not belong to any Roles.</p>
-                </tal:block>
-                <div class="clear"></div>
-            </tal:block> -->
-
 
             <div tal:condition="can_edit_users">
 
@@ -233,14 +193,13 @@
                         </thead>
                         <tbody>
                             <tal:block repeat="role options/roles">
-                                <tr tal:condition="python: role[0] in options['filtered_roles']"
-                                    tal:attributes="class python:'odd' if path('repeat/role/odd') else 'even'">
+                                <tr tal:condition="python: role[0] in options['filtered_roles']">
                                     <td tal:content="python: role[0]" nowrap="nowrap" />
                                     <td tal:content="python: role[1]" />
                                 </tr>
                             </tal:block>
                             <tal:block repeat="role options/removed_roles">
-                                <tr tal:attributes="class python:'odd' if path('repeat/role/odd') else 'even'">
+                                <tr>
                                     <td tal:content="python: role[0]" nowrap="nowrap" />
                                     <td tal:content="python: role[1]" />
                                 </tr>

@@ -1,6 +1,6 @@
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 
 from zope.component import getUtility
@@ -253,7 +253,34 @@ class UsersEditor(SimpleItem, PropertyManager):
             agent = self._get_ldap_agent(bind=True)
             user_id = _get_user_id(REQUEST)
             try:
-                options['user_info'] = agent.user_info(user_id)
+                user_info = agent.user_info(user_id)
+
+                defaultppolicy = agent.conn.search_s(
+                    'cn=defaultppolicy,ou=pwpolicies,o=EIONET,'
+                    'l=Europe',
+                    SCOPE_BASE)
+                pwdMaxAge = int(defaultppolicy[0][1]['pwdMaxAge'][0]) / (
+                    3600 * 24)
+
+                pwdChangedTime = user_info['pwdChangedTime']
+                if pwdChangedTime:
+                    pwdChangedTime = datetime.strptime(pwdChangedTime,
+                                                       '%Y%m%d%H%M%SZ')
+                    user_info['pwdChanged'] = pwdChangedTime.strftime(
+                        '%d %b %Y, %H:%m')
+                    user_info['pwdExpire'] = (
+                        pwdChangedTime + timedelta(days=pwdMaxAge)).strftime(
+                        '%d %b %Y, %H:%m')
+                    if datetime.now() - timedelta(
+                            days=pwdMaxAge) > pwdChangedTime:
+                        user_info['pwdExpired'] = True
+                    else:
+                        user_info['pwdExpired'] = False
+                else:
+                    user_info['pwdChanged'] = ''
+                    user_info['pwdExpired'] = True
+
+                options['user_info'] = user_info
             except UserNotFound:        # this happens when using Zope user
                 options['user_info'] = None
         else:
@@ -338,10 +365,8 @@ class UsersEditor(SimpleItem, PropertyManager):
             for node in schema.children:
                 if node.name in ['search_helper', 'reasonToCreate']:
                     to_remove.append(node)
-            schema.children = [child
-                for child in schema.children
-                if child not in to_remove
-            ]
+            schema.children = [
+                child for child in schema.children if child not in to_remove]
 
         options = {
             'base_url': self.absolute_url(),
