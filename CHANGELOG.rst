@@ -1,5 +1,6 @@
 1.1.39 (unreleased)
 ------------------
+* get password max age from the dedicated LDAP user [dumitval]
 * bind with special user credentials on Eionet User Editor
   (no longer using authenticated user's credentials) [dumitval]
 
