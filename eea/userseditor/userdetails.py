@@ -18,6 +18,8 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from z3c.pt.pagetemplate import PageTemplateFile as ChameleonTemplate
 from zExceptions import NotFound
 
+from ldap import SCOPE_BASE
+
 cfg = getConfiguration()
 cfg.environment.update(os.environ)
 NETWORK_NAME = getattr(cfg, 'environment', {}).get('NETWORK_NAME', 'EIONET')
@@ -241,10 +243,26 @@ class UserDetails(SimpleItem):
         pwdChangedTime = user['pwdChangedTime']
 
         if pwdChangedTime:
+            defaultppolicy = agent.conn.search_s(
+                'cn=defaultppolicy,ou=pwpolicies,o=EIONET,'
+                'l=Europe',
+                SCOPE_BASE)
+            pwdMaxAge = int(defaultppolicy[0][1]['pwdMaxAge'][0]) / (
+                3600 * 24)
             pwdChangedTime = datetime.strptime(pwdChangedTime, '%Y%m%d%H%M%SZ')
-            user['pwdChanged'] = pwdChangedTime.strftime('%Y-%m-%d %H:%M:%S')
             user['pwdExpired'] = datetime.now() - timedelta(
-                days=365) > pwdChangedTime
+                days=pwdMaxAge) > pwdChangedTime
+            if user['pwdExpired']:
+                user['pwdChanged'] = pwdChangedTime.strftime(
+                    '%Y-%m-%d %H:%M:%S') + ' (expired %s days ago)' % (
+                    datetime.now() - pwdChangedTime + timedelta(days=pwdMaxAge)
+                ).days
+            else:
+                user['pwdChanged'] = pwdChangedTime.strftime(
+                    '%Y-%m-%d %H:%M:%S') + ' (will expire in %s days)' % (
+                    pwdChangedTime + timedelta(days=pwdMaxAge) - datetime.now()
+                ).days
+
         else:
             user['pwdChanged'] = ''
             user['pwdExpired'] = True
