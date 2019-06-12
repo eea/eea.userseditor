@@ -16,7 +16,7 @@
 <p>
 
 <div class="account-links">
-    <a class="btn btn-secondary" tal:attributes="href string:${options/base_url}/edit_account" title="Edit account settigns">
+    <a class="btn btn-secondary" tal:attributes="href string:${options/base_url}/edit_account_html" title="Edit account settigns">
         <img src="/++resource++eea.userseditor-www/settings.png" class="middle-image image12" alt="" title="Edit account settings" />
         Account settings
     </a>
@@ -26,7 +26,7 @@
         Change password
     </a>
     &nbsp;
-    <a tal:attributes="href string:${options/base_url}/profile_picture"
+    <a tal:attributes="href string:${options/base_url}/profile_picture_html"
        class="btn btn-secondary" title="Select your profile picture">
         <img src="/++resource++eea.userseditor-www/picture.png" class="middle-image image12"
              alt="" title="Select profile picture" />

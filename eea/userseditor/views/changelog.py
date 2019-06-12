@@ -28,7 +28,7 @@ class BaseActionDetails(BrowserView):
         return self.index()
 
     def author(self, entry):
-        if entry['author'] == 'unknown user':
+        if entry['author'] in ['unknown user', 'acl_users']:
             return entry['author']
 
         user_info = self._get_ldap_agent().user_info(entry['author'])
