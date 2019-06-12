@@ -2,6 +2,7 @@ from Products.Five import BrowserView
 from zope.interface import Interface, Attribute, implements
 from Products.LDAPUserFolder.LDAPUserFolder import LDAPUserFolder
 from eea.usersdb import factories
+from eea.usersdb.db_agent import UserNotFound
 
 
 class IActionDetails(Interface):
@@ -31,8 +32,11 @@ class BaseActionDetails(BrowserView):
         if entry['author'] in ['unknown user', 'acl_users']:
             return entry['author']
 
-        user_info = self._get_ldap_agent().user_info(entry['author'])
-        return u"%s (%s)" % (user_info['full_name'], entry['author'])
+        try:
+            user_info = self._get_ldap_agent().user_info(entry['author'])
+            return u"%s (%s)" % (user_info['full_name'], entry['author'])
+        except UserNotFound:
+            return u"%s (%s)" % ('Former Eionet member', entry['author'])
 
     def _get_ldap_agent(self):
         # without the leading slash, since it will match the root acl
