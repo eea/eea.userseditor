@@ -1,5 +1,6 @@
 1.1.39 (unreleased)
 ------------------
+* fix for mandatory status of reasonToCreate in profile editor [dumitval]
 * handle deleted users in the Account changelog [dumitval]
 * get password max age from the dedicated LDAP user [dumitval]
 * bind with special user credentials on Eionet User Editor

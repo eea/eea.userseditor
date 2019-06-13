@@ -386,12 +386,19 @@ class UsersEditor(SimpleItem, PropertyManager):
         if REQUEST.method == 'GET':
             return self.edit_account_html(REQUEST)
 
+        agent = self._get_ldap_agent(bind=True)
         user_id = _get_user_id(REQUEST)
 
         user_form = deform.Form(user_info_schema)
 
         try:
-            new_info = user_form.validate(REQUEST.form.items())
+            new_info = {'reasonToCreate':
+                        agent.user_info(user_id).get(
+                            'reasonToCreate',
+                            'Account created before this field was introduced')
+                        }
+            new_info.update(REQUEST.form)
+            new_info = user_form.validate(new_info.items())
         except deform.ValidationFailure, e:
             errors = {}
 
@@ -403,8 +410,6 @@ class UsersEditor(SimpleItem, PropertyManager):
 
             return self.edit_account_html(REQUEST, REQUEST.form, errors)
         else:
-            agent = self._get_ldap_agent(bind=True)
-
             with agent.new_action():
                 # make a check if user is changing the organisation
                 old_info = agent.user_info(user_id)
