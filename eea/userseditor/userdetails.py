@@ -145,6 +145,16 @@ class CommonTemplateLogic(object):
 
         return bool(user.has_permission(eionet_edit_users, self.context))
 
+    def can_view_roles(self):
+        if self.can_edit_users():
+            return True
+        user = self.context.REQUEST.AUTHENTICATED_USER
+        agent = self.context._get_ldap_agent()
+        user_roles = agent.member_roles_info('user', user.getId(), ('uid', ))
+        for role in user_roles:
+            if role[0] in ['eea', 'eionet']:
+                return True
+
     @property
     def macros(self):
         return load_template('zpt/macros.zpt').macros
