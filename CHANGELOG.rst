@@ -1,5 +1,6 @@
 1.1.39 (unreleased)
 ------------------
+* allow members of eea or eionet roles to view roles of other members [dumitval]
 * fix for mandatory status of reasonToCreate in profile editor [dumitval]
 * handle deleted users in the Account changelog [dumitval]
 * get password max age from the dedicated LDAP user [dumitval]

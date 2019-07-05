@@ -59,6 +59,7 @@
             tal:attributes="about string:${common/portal_url}/users/${options/user/uid}" typeof="foaf:Person"
             tal:define="user options/user;
             disabled python:user.get('status') == 'disabled';
+            can_view_roles common/can_view_roles;
             can_edit_users common/can_edit_users;
             is_authenticated common/is_authenticated;">
 
@@ -164,8 +165,7 @@
                 </tal:block>
             </table>
 
-            <div tal:condition="can_edit_users">
-
+            <div tal:condition="can_view_roles">
                 <h2>
                     <form method="GET" action="./user" id="show_roles" tal:condition="not: disabled" >
                         <input type="hidden" name="uid" tal:attributes="value string:${user/uid}" />
@@ -179,34 +179,32 @@
 
                     <tal:block condition="disabled"> (When disabled)</tal:block>
                 </h2>
-                <tal:block>
-                    <table class="account-datatable sub-roles" tal:condition="python:options['roles'] or options['removed_roles']" >
-                        <thead>
-                            <tr>
-                                <td>
-                                    Role ID
-                                </td>
-                                <td>
-                                    Role name
-                                </td>
+                <table class="account-datatable sub-roles" tal:condition="python:options['roles'] or options['removed_roles']" >
+                    <thead>
+                        <tr>
+                            <td>
+                                Role ID
+                            </td>
+                            <td>
+                                Role name
+                            </td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tal:block repeat="role options/roles">
+                            <tr tal:condition="python: role[0] in options['filtered_roles']">
+                                <td tal:content="python: role[0]" nowrap="nowrap" />
+                                <td tal:content="python: role[1]" />
                             </tr>
-                        </thead>
-                        <tbody>
-                            <tal:block repeat="role options/roles">
-                                <tr tal:condition="python: role[0] in options['filtered_roles']">
-                                    <td tal:content="python: role[0]" nowrap="nowrap" />
-                                    <td tal:content="python: role[1]" />
-                                </tr>
-                            </tal:block>
-                            <tal:block repeat="role options/removed_roles">
-                                <tr>
-                                    <td tal:content="python: role[0]" nowrap="nowrap" />
-                                    <td tal:content="python: role[1]" />
-                                </tr>
-                            </tal:block>
-                        </tbody>
-                    </table>
-                </tal:block>
+                        </tal:block>
+                        <tal:block repeat="role options/removed_roles">
+                            <tr>
+                                <td tal:content="python: role[0]" nowrap="nowrap" />
+                                <td tal:content="python: role[1]" />
+                            </tr>
+                        </tal:block>
+                    </tbody>
+                </table>
 
                 <p tal:condition="python: not disabled and not options['roles']">
                   This member does not belong to any Roles.</p>
@@ -214,36 +212,37 @@
                     This member did not belong to any Roles when it was disabled.</p>
                 <div class="clear"></div>
 
-
-                <h2>Account changelog</h2>
-                <table class="datatable account-history" tal:define="context nocall:options/context; entries options/log_entries">
-                    <tr>
-                        <th>Timestamp</th>
-                        <th>Action</th>
-                        <th>Author</th>
-                        <th>Details</th>
-                    </tr>
-                    <tr tal:repeat="entry entries">
-                        <tal:def define="view nocall:entry/view">
-                            <td tal:define="action_id entry/action_id | nothing; index repeat/entry/index;
-                                show_link_with_previous python:index and action_id and (action_id == entries[index-1]['action_id'])">
-                                <span class="actionid" tal:condition="show_link_with_previous">&#8627;</span>
-                                <span class="actionid" tal:condition="not: show_link_with_previous">&#8227;</span>
-                                <span tal:content="python:entry['timestamp']" />
-                            </td>
-                            <td tal:content="view/action_title" />
-                            <td>
-                                <a href=""
-                                    tal:content="python: view.author(entry)"
-                                    tal:attributes="href string:?uid=${entry/author}">Author</a>
-                            </td>
-                            <td tal:content="structure python: view.details(entry)" ></td>
-                        </tal:def>
-                    </tr>
-                </table>
-                <p>NOTE: the changelog may not be complete, older modifications to
-                    the account prior to implementation of the CHANGELOG will not
-                    be shown here</p>
+                <tal:changelog condition="can_edit_users">
+                    <h2>Account changelog</h2>
+                    <table class="datatable account-history" tal:define="context nocall:options/context; entries options/log_entries">
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Action</th>
+                            <th>Author</th>
+                            <th>Details</th>
+                        </tr>
+                        <tr tal:repeat="entry entries">
+                            <tal:def define="view nocall:entry/view">
+                                <td tal:define="action_id entry/action_id | nothing; index repeat/entry/index;
+                                    show_link_with_previous python:index and action_id and (action_id == entries[index-1]['action_id'])">
+                                    <span class="actionid" tal:condition="show_link_with_previous">&#8627;</span>
+                                    <span class="actionid" tal:condition="not: show_link_with_previous">&#8227;</span>
+                                    <span tal:content="python:entry['timestamp']" />
+                                </td>
+                                <td tal:content="view/action_title" />
+                                <td>
+                                    <a href=""
+                                        tal:content="python: view.author(entry)"
+                                        tal:attributes="href string:?uid=${entry/author}">Author</a>
+                                </td>
+                                <td tal:content="structure python: view.details(entry)" ></td>
+                            </tal:def>
+                        </tr>
+                    </table>
+                    <p>NOTE: the changelog may not be complete, older modifications to
+                        the account prior to implementation of the CHANGELOG will not
+                        be shown here</p>
+                </tal:changelog>
             </div>
 
         </div>
