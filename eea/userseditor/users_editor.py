@@ -246,8 +246,6 @@ class UsersEditor(SimpleItem, PropertyManager):
     def index_html(self, REQUEST):
         """ view """
 
-        import pdb
-        pdb.set_trace()
         options = {
             'base_url': self.absolute_url(),
         }
