@@ -1,5 +1,6 @@
 1.1.39 (unreleased)
 ------------------
+* Switch UserDetails default view to browser view [tiberich]
 * allow members of eea or eionet roles to view roles of other members [dumitval]
 * fix for mandatory status of reasonToCreate in profile editor [dumitval]
 * handle deleted users in the Account changelog [dumitval]
@@ -168,14 +169,14 @@
 
 1.1.6 (2014-05-12)
 ------------------
-* Bug fix: don't take into consideration "owner of role" when 
+* Bug fix: don't take into consideration "owner of role" when
   displaying history of roles
   [tiberich #19565]
 
 
 1.1.5 (2014-05-9)
 --------------------
-* Bug fix: don't fail on user details page - history when encountering 
+* Bug fix: don't fail on user details page - history when encountering
   roles that are not in the filtered roles list
   [tiberich]
 

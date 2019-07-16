@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 from datetime import datetime, timedelta
@@ -9,21 +8,18 @@ from AccessControl import ClassSecurityInfo  # , Unauthorized
 from AccessControl.Permissions import view_management_screens
 from Acquisition import Implicit
 from App.config import getConfiguration
-from DateTime import DateTime
 from eea.ldapadmin import ldap_config
+from eea.userseditor.permissions import EIONET_EDIT_USERS
+from ldap import SCOPE_BASE
 from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
 from persistent.mapping import PersistentMapping
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from z3c.pt.pagetemplate import PageTemplateFile as ChameleonTemplate
-from zExceptions import NotFound
-
-from ldap import SCOPE_BASE
 
 cfg = getConfiguration()
 cfg.environment.update(os.environ)
 NETWORK_NAME = getattr(cfg, 'environment', {}).get('NETWORK_NAME', 'EIONET')
-eionet_edit_users = 'Eionet edit users'
 
 log = logging.getLogger(__name__)
 
@@ -121,6 +117,7 @@ class TemplateRenderer(Implicit):
         return tmpl(main_page_macro=main_page_macro, body_html=body_html)
 
     def __call__(self, name, **options):
+
         return self.wrap(self.render(name, **options))
 
 
@@ -135,7 +132,7 @@ class CommonTemplateLogic(object):
         return self.context.absolute_url()
 
     def portal_url(self):
-        return self.context.restrictedTraverse("/").absolute_url()
+        return self.context.portal_url()
 
     def is_authenticated(self):
         return _is_authenticated(self._get_request())
@@ -143,14 +140,19 @@ class CommonTemplateLogic(object):
     def can_edit_users(self):
         user = self.context.REQUEST.AUTHENTICATED_USER
 
-        return bool(user.has_permission(eionet_edit_users, self.context))
+        return bool(user.has_permission(EIONET_EDIT_USERS, self.context))
 
     def can_view_roles(self):
+        if not self.is_authenticated():
+            return False
+
         if self.can_edit_users():
             return True
+
         user = self.context.REQUEST.AUTHENTICATED_USER
         agent = self.context._get_ldap_agent()
         user_roles = agent.member_roles_info('user', user.getId(), ('uid', ))
+
         for role in user_roles:
             if role[0] in ['eea', 'eionet']:
                 return True
@@ -262,6 +264,7 @@ class UserDetails(SimpleItem):
             pwdChangedTime = datetime.strptime(pwdChangedTime, '%Y%m%d%H%M%SZ')
             user['pwdExpired'] = datetime.now() - timedelta(
                 days=pwdMaxAge) > pwdChangedTime
+
             if user['pwdExpired']:
                 user['pwdChanged'] = pwdChangedTime.strftime(
                     '%Y-%m-%d %H:%M:%S') + ' (expired %s days ago)' % (
@@ -278,118 +281,6 @@ class UserDetails(SimpleItem):
             user['pwdExpired'] = True
 
         return user, roles
-
-    security.declarePublic("index_html")
-
-    def index_html(self, REQUEST):
-        """ """
-        uid = REQUEST.form.get('uid')
-
-        if not uid:
-            # a missing uid can only mean this page is called by accident
-
-            return
-        date_for_roles = REQUEST.form.get('date_for_roles')
-
-        if "," in uid:
-            user = None
-            roles = None
-            multi = json.dumps({'users': uid.split(",")})
-        else:
-            multi = None
-            user, roles = self._prepare_user_page(uid)
-
-        is_auth = _is_authenticated(REQUEST)
-        # we can only connect to ldap with bind=True if we have an
-        # authenticated user
-        agent = self._get_ldap_agent(bind=is_auth)
-
-        user_dn = agent._user_dn(uid)
-        log_entries = list(reversed(agent._get_metadata(user_dn)))
-        VIEWS = {}
-        filtered_roles = set([info[0] for info in roles])   # + owner_roles)
-
-        if date_for_roles:
-            filter_date = DateTime(date_for_roles).asdatetime().date()
-        else:
-            filter_date = DateTime().asdatetime().date()
-
-        for entry in log_entries:
-            date = DateTime(entry['timestamp']).toZone("CET")
-            entry['timestamp'] = date.ISO()
-            view = VIEWS.get(entry['action'])
-
-            if not view:
-                view = getMultiAdapter((self, self.REQUEST),
-                                       name="details_" + entry['action'])
-                VIEWS[entry['action']] = view
-            entry['view'] = view
-
-            _roles = entry.get('data', {}).get('roles')
-            _role = entry.get('data', {}).get('role')
-
-            if date.asdatetime().date() >= filter_date:
-                if entry['action'] == 'ENABLE_ACCOUNT':
-                    filtered_roles.difference_update(set(_roles))
-                elif entry['action'] == "DISABLE_ACCOUNT":
-                    filtered_roles.update(set(_roles))
-                elif entry['action'] in ["ADDED_TO_ROLE"]:
-                    if _role and _role in filtered_roles:
-                        filtered_roles.remove(_role)
-                elif entry['action'] in ["REMOVED_FROM_ROLE"]:
-                    if _role:
-                        filtered_roles.add(_role)
-
-        output = []
-
-        for entry in log_entries:
-            if output:
-                last_entry = output[-1]
-                check = ['author', 'action']
-                flag = True
-
-                for k in check:
-                    if last_entry[k] != entry[k]:
-                        flag = False
-
-                        break
-
-                if flag:
-                    last_entry['data'].append(entry['data'])
-                else:
-                    entry['data'] = [entry['data']]
-                    output.append(entry)
-            else:
-                entry['data'] = [entry['data']]
-                output.append(entry)
-
-        removed_roles = []
-
-        if user.get('status') == 'disabled':
-            auth_user = self.REQUEST.AUTHENTICATED_USER
-
-            if not bool(auth_user.has_permission(eionet_edit_users, self)):
-                raise NotFound("User '%s' does not exist" % uid)
-            # process log entries to list the roles the user had before
-            # being disabled
-
-            for entry in log_entries:
-                if entry['action'] == 'DISABLE_ACCOUNT':
-                    for role in entry['data'][0]['roles']:
-                        try:
-                            role_description = agent.role_info(role)[
-                                'description']
-                        except:
-                            role_description = ("This role doesn't exist "
-                                                "anymore")
-                        removed_roles.append((role, role_description))
-
-                    break
-
-        return self._render_template(
-            "zpt/userdetails/index.zpt", context=self,
-            filtered_roles=filtered_roles, user=user, roles=roles,
-            removed_roles=removed_roles, multi=multi, log_entries=output)
 
     security.declarePublic("simple_profile")
 
