@@ -245,6 +245,9 @@ class UsersEditor(SimpleItem, PropertyManager):
 
     def index_html(self, REQUEST):
         """ view """
+
+        import pdb
+        pdb.set_trace()
         options = {
             'base_url': self.absolute_url(),
         }
@@ -263,6 +266,7 @@ class UsersEditor(SimpleItem, PropertyManager):
                     3600 * 24)
 
                 pwdChangedTime = user_info['pwdChangedTime']
+
                 if pwdChangedTime:
                     pwdChangedTime = datetime.strptime(pwdChangedTime,
                                                        '%Y%m%d%H%M%SZ')
@@ -271,6 +275,7 @@ class UsersEditor(SimpleItem, PropertyManager):
                     user_info['pwdExpire'] = (
                         pwdChangedTime + timedelta(days=pwdMaxAge)).strftime(
                         '%d %b %Y, %H:%m')
+
                     if datetime.now() - timedelta(
                             days=pwdMaxAge) > pwdChangedTime:
                         user_info['pwdExpired'] = True
@@ -362,6 +367,7 @@ class UsersEditor(SimpleItem, PropertyManager):
 
         if '/profile/profile-editor/' in REQUEST.URL:
             to_remove = []
+
             for node in schema.children:
                 if node.name in ['search_helper', 'reasonToCreate']:
                     to_remove.append(node)

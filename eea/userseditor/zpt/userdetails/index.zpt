@@ -1,250 +1,281 @@
-<div>
-    <style>
-        .actionid {
-            font-size:1.6em;
-            display:block;
-            float:left;
-            margin-right: 6px;
-            margin-top:-4px;
-        }
-    </style>
-    <div id="content-user" tal:condition="options/multi">
-        <p>You have launched a comparison of user profiles.
-            <br /><br />
-            If the windows don't pop up, please allow window popups in your browser and refresh page.
-        </p>
-        <script type="text/javascript" tal:content="string: var json_uids='${options/multi}'; var base_url='${common/base_url}';"></script>
-        <script type="text/javascript">
+<metal:block use-macro="context/main_template/macros/master">
 
+  <metal:block fill-slot="style_slot">
+    <link rel="stylesheet" type="text/css" media="screen"
+      href="/++resource++eea.userseditor-www/style.css"/>
+    <link href="/++resource++eea.ldapadmin-www/selectize/css/selectize.default.css" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" media="screen" href="/++resource++eea.ldapadmin-www/custom.css" />
+    <link rel="stylesheet" type="text/css" href="https://www.eionet.europa.eu/styles/eionet2007/screen.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="https://www.eionet.europa.eu/styles/eionet2007/print.css" media="print" />
+    <link rel="stylesheet" type="text/css" href="https://www.eionet.europa.eu/styles/eionet2007/handheld.css" media="handheld" />
+  </metal:block>
+
+  <metal:block fill-slot="javascript_head_slot">
+    <script src="/++resource++eea.ldapadmin-www/selectize/js/standalone/selectize.min.js"></script>
+    <script type="text/javascript" src="https://www.eionet.europa.eu/styles/eionet2007/pageops.js"></script>
+    <script type="text/javascript" src="https://www.eionet.europa.eu/styles/eionet2007/mark_special_links.js"></script>
+    <script src="/jquery-1.7.1.min.js"></script>
+  </metal:block>
+
+  <metal:block fill-slot="main" tal:define="common view/common">
+    <script src="/++resource++eea.ldapadmin-www/selectize/js/standalone/selectize.min.js"></script>
+
+    <div>
+      <style>
+        .actionid {
+        font-size:1.6em;
+        display:block;
+        float:left;
+        margin-right: 6px;
+        margin-top:-4px;
+        }
+      </style>
+      <div id="content-user" tal:condition="view/multi">
+        <p>You have launched a comparison of user profiles.
+          <br /><br />
+          If the windows don't pop up, please allow window popups in your browser and refresh page.
+        </p>
+        <script type="text/javascript"
+          tal:content="string: var json_uids='${view/multi}'; var base_url='${common/base_url}';"></script>
+        <script type="text/javascript">
+          // <![CDATA[
+
+          jQuery(document).ready(
+          function(){
+          var users = jQuery.parseJSON(json_uids)['users'];
+          for(var i=0;i<users.length;i++){
+            window.open(base_url+'/simple_profile?uid='+users[i], users[i],
+            'width='+(screen.width/users.length-20)+
+            ',height='+(screen.height-50)+',top=0,left='
+            +(screen.width/users.length*i)+
+            ',toolbar=no,status=no,menubar=no,location=no');
+            }
+            window.close();
+            }
+            );
+
+            // ]]>
+          </script>
+        </div>
+        <div id="content-user" tal:condition="not: view/multi">
+          <style>
+            #show_roles {
+            width:300px;
+            float:right;
+            font-size:12px;
+            text-align:right;
+            }
+          </style>
+
+          <script src="/++resource++jquery.min.js"></script>
+          <script src="/++resource++jquery-ui.min.js"></script>
+
+          <link rel="stylesheet" type="text/css" media="screen"
+            href="/++resource++eea.userseditor-www/jquery-ui-1.9.2.custom.css" />
+
+          <script type="text/javascript">
             jQuery(document).ready(
             function(){
-            var users = jQuery.parseJSON(json_uids)['users'];
-            for(var i=0;i<users.length;i++){
-                window.open(base_url+'/simple_profile?uid='+users[i], users[i],
-                'width='+(screen.width/users.length-20)+
-                ',height='+(screen.height-50)+',top=0,left='
-                +(screen.width/users.length*i)+
-                ',toolbar=no,status=no,menubar=no,location=no');
-                }
-                window.close();
-                }
-                );
+            jQuery("#datepicker").datepicker();
+            });
+          </script>
 
-            </script>
-    </div>
-    <div id="content-user" tal:condition="not: options/multi">
-        <style>
-            #show_roles {
-                width:300px;
-                float:right;
-                font-size:12px;
-                text-align:right;
-            }
-        </style>
-
-        <script src="/++resource++jquery.min.js"></script>
-        <script src="/++resource++jquery-ui.min.js"></script>
-
-        <link rel="stylesheet" type="text/css" media="screen"
-            href="/++resource++eea.userseditor-www/jquery-ui-1.9.2.custom.css"/>
-
-        <script type="text/javascript">
-            jQuery(document).ready(
-                function(){
-                    jQuery("#datepicker").datepicker();
-                });
-        </script>
-
-        <div xmlns:foaf="http://xmlns.com/foaf/0.1/"
-            tal:attributes="about string:${common/portal_url}/users/${options/user/uid}" typeof="foaf:Person"
-            tal:define="user options/user;
+          <div xmlns:foaf="http://xmlns.com/foaf/0.1/"
+            tal:attributes="about string:${common/portal_url}/users/${view/user/uid}" typeof="foaf:Person"
+            tal:define="user view/user;
             disabled python:user.get('status') == 'disabled';
             can_view_roles common/can_view_roles;
             can_edit_users common/can_edit_users;
             is_authenticated common/is_authenticated;">
 
             <h1 property="foaf:name">
-                <tal:block content="user/full_name" />
-                <a tal:condition="can_edit_users"
-                    style="background:none"
-                    tal:attributes="href string:${common/portal_url}/eionet-account-tools/eionet_account_tools/users/edit_user?id=${user/uid}">
-                    <img src="/++resource++eea.userseditor-www/edit.gif" alt="Edit" />
-                </a>
+              <tal:block content="user/full_name" />
+              <a tal:condition="can_edit_users"
+                style="background:none"
+                tal:attributes="href string:${common/portal_url}/eionet-account-tools/eionet_account_tools/users/edit_user?id=${user/uid}">
+                <img src="/++resource++eea.userseditor-www/edit.gif" alt="Edit" />
+              </a>
             </h1>
 
             <div class="tip-msg" tal:condition="not: is_authenticated">
-                You are displaying this EIONET User details as anonymous.
-                <br /><br />
-                For more information on account please <a href="/loggedin" title="Login to your account">login</a> first, as access to more detailed information, in addition to name, title and ID, is restricted to authenticated users.
+              You are displaying this EIONET User details as anonymous.
+              <br /><br />
+              For more information on account please <a href="/loggedin" title="Login to your account">login</a> first, as access to more detailed information, in addition to name, title and ID, is restricted to authenticated users.
             </div>
 
             <div class="figure figure-right" style="clear: both"
-                tal:condition="python:user['jpegPhoto'] and (not disabled or can_edit_users)">
-                <div class="figure-image">
-                    <a tal:attributes="href string:userphoto_jpeg?uid=${user/uid}">
-                        <img tal:attributes="src string:${common/base_url}/userphoto_jpeg?uid=${user/uid}" class="mouseclickpop"
-                            alt="photo of person" style="max-width:200px; max-height:150px"/></a>
-                </div>
+              tal:condition="python:user['jpegPhoto'] and (not disabled or can_edit_users)">
+              <div class="figure-image">
+                <a tal:attributes="href string:userphoto_jpeg?uid=${user/uid}">
+                  <img tal:attributes="src string:${common/base_url}/userphoto_jpeg?uid=${user/uid}" class="mouseclickpop"
+                    alt="photo of person" style="max-width:200px; max-height:150px" />
+                </a>
+              </div>
             </div>
 
             <table class="datatable">
-                <tr tal:condition="disabled">
-                    <th colspan="2">Deactivated user</th>
-                </tr>
-                <tr tal:condition="python:not disabled or can_edit_users">
-                    <th scope="row" class="scope-row">Title</th>
-                    <tal:block condition="user/job_title">
-                        <td tal:content="python: user.get('job_title')" />
-                    </tal:block>
-                    <tal:block condition="not: user/job_title">
-                        <td><em>No title</em></td>
-                    </tal:block>
-                </tr>
-                <tr><th scope="row" class="scope-row">Given name</th>
-                    <td tal:content="user/first_name" /></tr>
-                <tr><th scope="row" class="scope-row">Surname</th>
-                    <td tal:content="user/last_name" /></tr>
-                <tr><th scope="row" class="scope-row">Organisation</th>
-                  <td>
-                    <tal:block condition="python:user['organisation_title'] and can_edit_users">
-                      <a tal:content="user/organisation_title"
-                        tal:attributes="href string:${common/portal_url}/eionet-account-tools/eionet_account_tools/organisations/organisation?id=${user/organisation}" />
-                      <tal:block content="string:(${user/organisation})" />
-                    </tal:block>
-                    <tal:block condition="python:user['organisation_title'] and not can_edit_users"
+              <tr tal:condition="disabled">
+                <th colspan="2">Deactivated user</th>
+              </tr>
+              <tr tal:condition="python:not disabled or can_edit_users">
+                <th scope="row" class="scope-row">Title</th>
+                <tal:block condition="user/job_title">
+                  <td tal:content="python: user.get('job_title')" />
+                </tal:block>
+                <tal:block condition="not: user/job_title">
+                  <td><em>No title</em></td>
+                </tal:block>
+              </tr>
+              <tr><th scope="row" class="scope-row">Given name</th>
+                <td tal:content="user/first_name" /></tr>
+              <tr><th scope="row" class="scope-row">Surname</th>
+                <td tal:content="user/last_name" /></tr>
+              <tr><th scope="row" class="scope-row">Organisation</th>
+                <td>
+                  <tal:block condition="python:user['organisation_title'] and can_edit_users">
+                    <a tal:content="user/organisation_title"
+                      tal:attributes="href string:${common/portal_url}/eionet-account-tools/eionet_account_tools/organisations/organisation?id=${user/organisation}" />
+                    <tal:block content="string:(${user/organisation})" />
+                  </tal:block>
+                  <tal:block condition="python:user['organisation_title'] and not can_edit_users"
                     content="string:${user/organisation_title} (${user/organisation})" />
-                    <tal:block condition="not:user/organisation_title"
-                      tal:content="user/organisation" />
+                  <tal:block condition="not:user/organisation_title"
+                    tal:content="user/organisation" />
+                </td>
+              </tr>
+              <tal:block condition="python:not disabled and is_authenticated or can_edit_users">
+                <tr tal:condition="disabled">
+                  <td colspan="2"><em>Available to Managers only</em></td>
+                </tr>
+                <tr><th scope="row" class="scope-row">Department</th>
+                  <td tal:content="user/department" /></tr>
+                <tr><th scope="row" class="scope-row">Mail</th>
+                  <td tal:content="user/email" /></tr>
+                <tr><th scope="row" class="scope-row">Telephone</th>
+                  <td tal:content="user/phone" /></tr>
+                <tr><th scope="row" class="scope-row">Mobile phone</th>
+                  <td tal:content="user/mobile" /></tr>
+                <tr><th scope="row" class="scope-row">Fax</th>
+                  <td tal:content="user/fax" /></tr>
+                <tr><th scope="row" class="scope-row">Postal</th>
+                  <td tal:content="user/postal_address" /></tr>
+              </tal:block>
+
+              <tal:block condition="user/certificate">
+                <tr><th scope="row" class="scope-row">Authentication</th>
+                  <td>
+                    <a tal:attributes="href string:${common/base_url}/usercertificate?uid=${user/uid}">PKI Certificate</a>
                   </td>
                 </tr>
-                <tal:block condition="python:not disabled and is_authenticated or can_edit_users">
-                    <tr tal:condition="disabled">
-                        <td colspan="2"><em>Available to Managers only</em></td>
-                    </tr>
-                    <tr><th scope="row" class="scope-row">Department</th>
-                        <td tal:content="user/department" /></tr>
-                    <tr><th scope="row" class="scope-row">Mail</th>
-                        <td tal:content="user/email" /></tr>
-                    <tr><th scope="row" class="scope-row">Telephone</th>
-                        <td tal:content="user/phone" /></tr>
-                    <tr><th scope="row" class="scope-row">Mobile phone</th>
-                        <td tal:content="user/mobile" /></tr>
-                    <tr><th scope="row" class="scope-row">Fax</th>
-                        <td tal:content="user/fax" /></tr>
-                    <tr><th scope="row" class="scope-row">Postal</th>
-                        <td tal:content="user/postal_address" /></tr>
-                </tal:block>
+              </tal:block>
 
+              <tal:block condition="can_edit_users">
+                <tr tal:condition="not: disabled">
+                  <td colspan="2"><em>Available to Managers only</em></td></tr>
+                <tr><th scope="row" class="scope-row">Userid</th>
+                  <td tal:content="user/uid" /></tr>
+                <tr><th scope="row" class="scope-row">Created</th>
+                  <td tal:content="user/createTimestamp" /></tr>
+                <tr><th scope="row" class="scope-row">Modified</th>
+                  <td tal:content="user/modifyTimestamp" /></tr>
+                <tr><th scope="row" class="scope-row">Password last changed</th>
+                  <td tal:attributes="class python:'error-hint' if user['pwdExpired'] and not disabled else ''"
+                    tal:content="user/pwdChanged" /></tr>
                 <tal:block condition="user/certificate">
-                    <tr><th scope="row" class="scope-row">Authentication</th>
-                        <td>
-                            <a tal:attributes="href string:${common/base_url}/usercertificate?uid=${user/uid}">PKI Certificate</a>
-                        </td>
-                    </tr>
+                  <tr><th scope="row" class="scope-row">Authentication</th>
+                    <td>
+                      <a tal:attributes="href string:${common/base_url}/usercertificate?uid=${user/uid}">PKI Certificate</a>
+                    </td>
+                  </tr>
                 </tal:block>
-
-                <tal:block condition="can_edit_users">
-                    <tr tal:condition="not: disabled">
-                        <td colspan="2"><em>Available to Managers only</em></td></tr>
-                    <tr><th scope="row" class="scope-row">Userid</th>
-                        <td tal:content="user/uid" /></tr>
-                    <tr><th scope="row" class="scope-row">Created</th>
-                        <td tal:content="user/createTimestamp" /></tr>
-                    <tr><th scope="row" class="scope-row">Modified</th>
-                        <td tal:content="user/modifyTimestamp" /></tr>
-                    <tr><th scope="row" class="scope-row">Password last changed</th>
-                        <td tal:attributes="class python:'error-hint' if user['pwdExpired'] and not disabled else ''"
-                          tal:content="user/pwdChanged" /></tr>
-                    <tal:block condition="user/certificate">
-                        <tr><th scope="row" class="scope-row">Authentication</th>
-                            <td>
-                                <a tal:attributes="href string:${common/base_url}/usercertificate?uid=${user/uid}">PKI Certificate</a>
-                            </td>
-                        </tr>
-                    </tal:block>
-                </tal:block>
+              </tal:block>
             </table>
 
             <div tal:condition="can_view_roles">
-                <h2>
-                    <form method="GET" action="./user" id="show_roles" tal:condition="not: disabled" >
-                        <input type="hidden" name="uid" tal:attributes="value string:${user/uid}" />
-                        <label for="date_for_roles">At date:</label>
-                        <input type="text" name="date_for_roles" id="datepicker" class="hasDatePicker"
-                            tal:attributes="value python:options['context'].REQUEST.form.get('date_for_roles')" />
-                        <input type="submit" value="Submit" />
-                    </form>
+              <h2>
+                <form method="GET" action="./user" id="show_roles" tal:condition="not: disabled" >
+                  <input type="hidden" name="uid" tal:attributes="value string:${user/uid}" />
+                  <label for="date_for_roles">At date:</label>
+                  <input type="text" name="date_for_roles" id="datepicker" class="hasDatePicker"
+                    tal:attributes="value python:request.form.get('date_for_roles')" />
+                  <input type="submit" value="Submit" />
+                </form>
 
-                    Member of Groups - Eionet Directory Roles
+                Member of Groups - Eionet Directory Roles
 
-                    <tal:block condition="disabled"> (When disabled)</tal:block>
-                </h2>
-                <table class="account-datatable sub-roles" tal:condition="python:options['roles'] or options['removed_roles']" >
-                    <thead>
-                        <tr>
-                            <td>
-                                Role ID
-                            </td>
-                            <td>
-                                Role name
-                            </td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tal:block repeat="role options/roles">
-                            <tr tal:condition="python: role[0] in options['filtered_roles']">
-                                <td tal:content="python: role[0]" nowrap="nowrap" />
-                                <td tal:content="python: role[1]" />
-                            </tr>
-                        </tal:block>
-                        <tal:block repeat="role options/removed_roles">
-                            <tr>
-                                <td tal:content="python: role[0]" nowrap="nowrap" />
-                                <td tal:content="python: role[1]" />
-                            </tr>
-                        </tal:block>
-                    </tbody>
+                <tal:block condition="disabled"> (When disabled)</tal:block>
+              </h2>
+              <table class="account-datatable sub-roles" tal:condition="python:view.roles or view.removed_roles" >
+                <thead>
+                  <tr>
+                    <td>
+                      Role ID
+                    </td>
+                    <td>
+                      Role name
+                    </td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tal:block repeat="role view/roles">
+                    <tr tal:condition="python: role[0] in view.filtered_roles">
+                      <td tal:content="python: role[0]" nowrap="nowrap" />
+                      <td tal:content="python: role[1]" />
+                    </tr>
+                  </tal:block>
+                  <tal:block repeat="role view/removed_roles">
+                    <tr>
+                      <td tal:content="python: role[0]" nowrap="nowrap" />
+                      <td tal:content="python: role[1]" />
+                    </tr>
+                  </tal:block>
+                </tbody>
+              </table>
+
+              <p tal:condition="python: not disabled and not view.roles">
+                This member does not belong to any Roles.</p>
+              <p tal:condition="python: disabled and not view.removed_roles">
+                This member did not belong to any Roles when it was disabled.</p>
+              <div class="clear"></div>
+
+              <tal:changelog condition="can_edit_users">
+                <h2>Account changelog</h2>
+                <table
+                  class="datatable account-history"
+                  tal:define="entries view/log_entries">
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Action</th>
+                    <th>Author</th>
+                    <th>Details</th>
+                  </tr>
+                  <tr tal:repeat="entry entries">
+                    <tal:def define="view nocall:entry/view">
+                      <td tal:define="action_id entry/action_id | nothing; index repeat/entry/index;
+                        show_link_with_previous python:index and action_id and (action_id == entries[index-1]['action_id'])">
+                        <span class="actionid" tal:condition="show_link_with_previous">&#8627;</span>
+                        <span class="actionid" tal:condition="not: show_link_with_previous">&#8227;</span>
+                        <span tal:content="python:entry['timestamp']" ></span>
+                      </td>
+                      <td tal:content="view/action_title" />
+                      <td>
+                        <a href=""
+                          tal:content="python: view.author(entry)"
+                          tal:attributes="href string:?uid=${entry/author}">Author</a>
+                      </td>
+                      <td tal:content="structure python: view.details(entry)" ></td>
+                    </tal:def>
+                  </tr>
                 </table>
-
-                <p tal:condition="python: not disabled and not options['roles']">
-                  This member does not belong to any Roles.</p>
-                <p tal:condition="python: disabled and not options['removed_roles']">
-                    This member did not belong to any Roles when it was disabled.</p>
-                <div class="clear"></div>
-
-                <tal:changelog condition="can_edit_users">
-                    <h2>Account changelog</h2>
-                    <table class="datatable account-history" tal:define="context nocall:options/context; entries options/log_entries">
-                        <tr>
-                            <th>Timestamp</th>
-                            <th>Action</th>
-                            <th>Author</th>
-                            <th>Details</th>
-                        </tr>
-                        <tr tal:repeat="entry entries">
-                            <tal:def define="view nocall:entry/view">
-                                <td tal:define="action_id entry/action_id | nothing; index repeat/entry/index;
-                                    show_link_with_previous python:index and action_id and (action_id == entries[index-1]['action_id'])">
-                                    <span class="actionid" tal:condition="show_link_with_previous">&#8627;</span>
-                                    <span class="actionid" tal:condition="not: show_link_with_previous">&#8227;</span>
-                                    <span tal:content="python:entry['timestamp']" />
-                                </td>
-                                <td tal:content="view/action_title" />
-                                <td>
-                                    <a href=""
-                                        tal:content="python: view.author(entry)"
-                                        tal:attributes="href string:?uid=${entry/author}">Author</a>
-                                </td>
-                                <td tal:content="structure python: view.details(entry)" ></td>
-                            </tal:def>
-                        </tr>
-                    </table>
-                    <p>NOTE: the changelog may not be complete, older modifications to
-                        the account prior to implementation of the CHANGELOG will not
-                        be shown here</p>
-                </tal:changelog>
+                <p>NOTE: the changelog may not be complete, older modifications to
+                  the account prior to implementation of the CHANGELOG will not
+                  be shown here</p>
+              </tal:changelog>
             </div>
 
+          </div>
         </div>
-    </div>
-    </div>
+      </div>
+
+    </metal:block>
+  </metal:block>
