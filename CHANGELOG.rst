@@ -1,5 +1,6 @@
 1.1.39 (unreleased)
 ------------------
+* use select2 instead of selectize [dumitval]
 * Switch UserDetails default view to browser view [tiberich]
 * allow members of eea or eionet roles to view roles of other members [dumitval]
 * fix for mandatory status of reasonToCreate in profile editor [dumitval]
