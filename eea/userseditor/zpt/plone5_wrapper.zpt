@@ -12,7 +12,6 @@
   <metal:block fill-slot="javascript_head_slot">
       <script type="text/javascript" src="https://www.eionet.europa.eu/styles/eionet2007/pageops.js"></script>
       <script type="text/javascript" src="https://www.eionet.europa.eu/styles/eionet2007/mark_special_links.js"></script>
-      <script src="/jquery-1.7.1.min.js"></script>
   </metal:block>
 
   <metal:block fill-slot="main">

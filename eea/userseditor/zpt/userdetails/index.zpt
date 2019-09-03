@@ -12,7 +12,6 @@
   <metal:block fill-slot="javascript_head_slot">
     <script type="text/javascript" src="https://www.eionet.europa.eu/styles/eionet2007/pageops.js"></script>
     <script type="text/javascript" src="https://www.eionet.europa.eu/styles/eionet2007/mark_special_links.js"></script>
-    <script src="/jquery-1.7.1.min.js"></script>
   </metal:block>
 
   <metal:block fill-slot="main" tal:define="common view/common">
@@ -64,8 +63,8 @@
             }
           </style>
 
-          <script src="/++resource++jquery.min.js"></script>
-          <script src="/++resource++jquery-ui.min.js"></script>
+          <script src="/++resource++eea.userseditor-www/jquery-1.7.1.min.js"></script>
+          <script src="/++resource++eea.userseditor-www/jquery-ui-1.9.2.min.js"></script>
 
           <link rel="stylesheet" type="text/css" media="screen"
             href="/++resource++eea.userseditor-www/jquery-ui-1.9.2.custom.css" />
@@ -93,12 +92,6 @@
                 <img src="/++resource++eea.userseditor-www/edit.gif" alt="Edit" />
               </a>
             </h1>
-
-            <div class="tip-msg" tal:condition="not: is_authenticated">
-              You are displaying this EIONET User details as anonymous.
-              <br /><br />
-              For more information on account please <a href="/loggedin" title="Login to your account">login</a> first, as access to more detailed information, in addition to name, title and ID, is restricted to authenticated users.
-            </div>
 
             <div class="figure figure-right" style="clear: both"
               tal:condition="python:user['jpegPhoto'] and (not disabled or can_edit_users)">
