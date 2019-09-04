@@ -5,7 +5,7 @@
   <browser:page
     name="index_html"
     for="eea.userseditor.userdetails.UserDetails"
-    permission="zope.Public"
+    permission="zope2.View"
     class=".userdetails.UserDetailsView"
     template="../zpt/userdetails/index.zpt"
     />
@@ -13,7 +13,7 @@
   <browser:page
     name="details_ENABLE_ACCOUNT"
     for="*"
-    permission="zope.Public"
+    permission="zope2.View"
     class=".changelog.EnableAccount"
     template="templates/enable_account.pt"
     />
@@ -21,7 +21,7 @@
   <browser:page
     name="details_DISABLE_ACCOUNT"
     for="*"
-    permission="zope.Public"
+    permission="zope2.View"
     class=".changelog.DisableAccount"
     template="templates/disable_account.pt"
     />
@@ -29,7 +29,7 @@
   <browser:page
     name="details_RESET_ACCOUNT"
     for="*"
-    permission="zope.Public"
+    permission="zope2.View"
     class=".changelog.ResetAccount"
     template="templates/reset_account.pt"
     />
@@ -37,7 +37,7 @@
   <browser:page
     name="details_ADD_TO_ORG"
     for="*"
-    permission="zope.Public"
+    permission="zope2.View"
     class=".changelog.AddToOrg"
     template="templates/add_to_org.pt"
     />
@@ -45,7 +45,7 @@
   <browser:page
     name="details_REMOVED_FROM_ORG"
     for="*"
-    permission="zope.Public"
+    permission="zope2.View"
     class=".changelog.RemovedFromOrg"
     template="templates/removed_from_org.pt"
     />
@@ -53,7 +53,7 @@
   <browser:page
     name="details_ADD_PENDING_TO_ORG"
     for="*"
-    permission="zope.Public"
+    permission="zope2.View"
     class=".changelog.AddToOrg"
     template="templates/add_pending_to_org.pt"
     />
@@ -61,7 +61,7 @@
   <browser:page
     name="details_REMOVED_PENDING_FROM_ORG"
     for="*"
-    permission="zope.Public"
+    permission="zope2.View"
     class=".changelog.RemovedFromOrg"
     template="templates/removed_pending_from_org.pt"
     />
@@ -70,7 +70,7 @@
   <browser:page
     name="details_ADDED_TO_ROLE"
     for="*"
-    permission="zope.Public"
+    permission="zope2.View"
     class=".changelog.AddedToRole"
     template="templates/added_to_role.pt"
     />
@@ -78,7 +78,7 @@
   <browser:page
     name="details_REMOVED_FROM_ROLE"
     for="*"
-    permission="zope.Public"
+    permission="zope2.View"
     class=".changelog.RemovedFromRole"
     template="templates/removed_from_role.pt"
     />
@@ -86,7 +86,7 @@
   <browser:page
     name="details_ADDED_AS_ROLE_OWNER"
     for="*"
-    permission="zope.Public"
+    permission="zope2.View"
     class=".changelog.AddedAsRoleOwner"
     template="templates/added_as_role_owner.pt"
     />
@@ -94,7 +94,7 @@
   <browser:page
     name="details_REMOVED_AS_ROLE_OWNER"
     for="*"
-    permission="zope.Public"
+    permission="zope2.View"
     class=".changelog.RemovedAsRoleOwner"
     template="templates/removed_as_role_owner.pt"
     />
@@ -102,7 +102,7 @@
   <browser:page
     name="details_ADDED_AS_PERMITTED_PERSON"
     for="*"
-    permission="zope.Public"
+    permission="zope2.View"
     class=".changelog.AddedAsPermittedPerson"
     template="templates/added_as_permitted_person.pt"
     />
@@ -110,7 +110,7 @@
   <browser:page
     name="details_REMOVED_AS_PERMITTED_PERSON"
     for="*"
-    permission="zope.Public"
+    permission="zope2.View"
     class=".changelog.RemovedAsPermittedPerson"
     template="templates/removed_as_permitted_person.pt"
     />
@@ -118,7 +118,7 @@
   <browser:page
     name="details_SET_AS_ROLE_LEADER"
     for="*"
-    permission="zope.Public"
+    permission="zope2.View"
     class=".changelog.SetAsRoleLeader"
     template="templates/set_as_role_leader.pt"
     />
@@ -126,7 +126,7 @@
   <browser:page
     name="details_UNSET_AS_ROLE_LEADER"
     for="*"
-    permission="zope.Public"
+    permission="zope2.View"
     class=".changelog.UnsetAsRoleLeader"
     template="templates/unset_as_role_leader.pt"
     />
@@ -134,7 +134,7 @@
   <browser:page
     name="details_SET_AS_ALTERNATE_ROLE_LEADER"
     for="*"
-    permission="zope.Public"
+    permission="zope2.View"
     class=".changelog.SetAsAlternateRoleLeader"
     template="templates/set_as_alternate_role_leader.pt"
     />
@@ -142,7 +142,7 @@
   <browser:page
     name="details_UNSET_AS_ALTERNATE_ROLE_LEADER"
     for="*"
-    permission="zope.Public"
+    permission="zope2.View"
     class=".changelog.UnsetAsAlternateRoleLeader"
     template="templates/unset_as_alternate_role_leader.pt"
     />

@@ -1,5 +1,8 @@
 1.1.39 (unreleased)
 ------------------
+* remove old links to jquery [dumitval]
+* bugfix in current role listing on user details [dumtival]
+* use select2 instead of selectize [dumitval]
 * Switch UserDetails default view to browser view [tiberich]
 * allow members of eea or eionet roles to view roles of other members [dumitval]
 * fix for mandatory status of reasonToCreate in profile editor [dumitval]
