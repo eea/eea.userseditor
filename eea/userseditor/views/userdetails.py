@@ -39,9 +39,9 @@ class UserDetailsView(BrowserView):
         filtered_roles = set([info[0] for info in roles])   # + owner_roles)
 
         if date_for_roles:
-            filter_date = DateTime(date_for_roles).asdatetime().date()
+            filter_date = DateTime(date_for_roles).asdatetime()
         else:
-            filter_date = DateTime().asdatetime().date()
+            filter_date = DateTime().asdatetime()
 
         for entry in log_entries:
             date = DateTime(entry['timestamp']).toZone("CET")
@@ -57,7 +57,7 @@ class UserDetailsView(BrowserView):
             _roles = entry.get('data', {}).get('roles')
             _role = entry.get('data', {}).get('role')
 
-            if date.asdatetime().date() >= filter_date:
+            if date.asdatetime() >= filter_date:
                 if entry['action'] == 'ENABLE_ACCOUNT':
                     filtered_roles.difference_update(set(_roles))
                 elif entry['action'] == "DISABLE_ACCOUNT":
