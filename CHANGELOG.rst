@@ -1,5 +1,6 @@
 1.1.39 (unreleased)
 ------------------
+* add jquery_ui for the datepicker [dumitval]
 * remove old links to jquery [dumitval]
 * bugfix in current role listing on user details [dumtival]
 * use select2 instead of selectize [dumitval]

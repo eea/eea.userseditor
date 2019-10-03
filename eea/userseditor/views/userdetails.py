@@ -7,6 +7,7 @@ from eea.userseditor.permissions import EIONET_EDIT_USERS
 from eea.userseditor.userdetails import CommonTemplateLogic
 from Products.Five.browser import BrowserView
 from zExceptions import NotFound
+from eea.ldapadmin.ui_common import get_role_name
 
 
 class UserDetailsView(BrowserView):
@@ -39,9 +40,9 @@ class UserDetailsView(BrowserView):
         filtered_roles = set([info[0] for info in roles])   # + owner_roles)
 
         if date_for_roles:
-            filter_date = DateTime(date_for_roles).asdatetime()
+            filter_date = DateTime(date_for_roles).toZone("CET").asdatetime()
         else:
-            filter_date = DateTime().asdatetime()
+            filter_date = DateTime().toZone("CET").asdatetime()
 
         for entry in log_entries:
             date = DateTime(entry['timestamp']).toZone("CET")
@@ -116,7 +117,8 @@ class UserDetailsView(BrowserView):
 
                     break
 
-        self.filtered_roles = filtered_roles
+        self.filtered_roles = [(role, get_role_name(agent, role))
+                               for role in filtered_roles]
         self.user = user
         self.roles = roles
         self.removed_roles = removed_roles
