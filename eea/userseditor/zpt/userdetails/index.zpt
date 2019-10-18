@@ -4,7 +4,6 @@
     <link rel="stylesheet" type="text/css" media="screen"
       href="/++resource++eea.userseditor-www/style.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="/++resource++eea.ldapadmin-www/custom.css" />
-    <link rel="stylesheet" type="text/css" media="screen" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" />
     <link rel="stylesheet" type="text/css" href="https://www.eionet.europa.eu/styles/eionet2007/screen.css" media="screen" />
     <link rel="stylesheet" type="text/css" href="https://www.eionet.europa.eu/styles/eionet2007/print.css" media="print" />
     <link rel="stylesheet" type="text/css" href="https://www.eionet.europa.eu/styles/eionet2007/handheld.css" media="handheld" />
@@ -13,13 +12,6 @@
   <metal:block fill-slot="javascript_head_slot">
     <script type="text/javascript" src="https://www.eionet.europa.eu/styles/eionet2007/pageops.js"></script>
     <script type="text/javascript" src="https://www.eionet.europa.eu/styles/eionet2007/mark_special_links.js"></script>
-    <script>
-      require.config({
-        "paths": {
-          "jquery-ui": "//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min"
-        }
-      });
-    </script>
   </metal:block>
 
   <metal:block fill-slot="main" tal:define="common view/common">
@@ -74,10 +66,8 @@
           <script type="text/javascript">
             jQuery(document).ready(
             function(){
-              require([ "jquery", "jquery-ui" ], function($) {
-                $("#datepicker").datepicker({
-                  dateFormat: "yy-mm-dd"
-                });
+              $("#datepicker").datepicker({
+                dateFormat: "yy-mm-dd"
               });
             });
           </script>

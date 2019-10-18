@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from zope.component import getMultiAdapter
 
 from AccessControl import ClassSecurityInfo  # , Unauthorized
-from AccessControl.Permissions import view_management_screens
+from AccessControl.Permissions import view, view_management_screens
 from Acquisition import Implicit
 from App.config import getConfiguration
 from eea.ldapadmin import ldap_config
@@ -293,7 +293,7 @@ class UserDetails(SimpleItem):
         return tr.__of__(self).render("zpt/userdetails/simple.zpt",
                                       user=user, roles=roles)
 
-    security.declarePublic("userphoto_jpeg")
+    security.declareProtected(view, "userphoto_jpeg")
 
     def userphoto_jpeg(self, REQUEST):
         """ """
