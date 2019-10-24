@@ -50,6 +50,6 @@ buildout environment you could set up a test runner like so::
         nose
         mock
         lxml
-        BeautifulSoup
+        beautifulsoup4
         eea.userseditor
     extra-paths = ../zopes/2.10.12/lib/python

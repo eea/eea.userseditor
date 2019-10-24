@@ -10,6 +10,7 @@ from eea.userseditor.users_editor import UsersEditor
 from eea.userseditor.users_editor import (SESSION_MESSAGES, SESSION_FORM_DATA,
                                           SESSION_FORM_ERRORS)
 from eea.usersdb.schema import INVALID_PHONE_MESSAGE, INVALID_URL
+import six
 
 
 def plaintext(element):
@@ -370,6 +371,6 @@ class EditValidationTest(unittest.TestCase):
 
         page = parse_html(self.ui.edit_account_html(self.request))
         txt = lambda xp: plaintext(page.xpath(xp)[0])
-        for name, value in errors.iteritems():
+        for name, value in six.iteritems(errors):
             error_text = txt('//form//p[@id="error-edit-%s"]' % name)
             self.assertEqual(error_text, value, "Bad error for %s" % name)

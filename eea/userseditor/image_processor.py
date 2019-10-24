@@ -1,4 +1,5 @@
-from StringIO import StringIO
+# from StringIO import StringIO
+from io import StringIO
 
 from PIL import Image
 

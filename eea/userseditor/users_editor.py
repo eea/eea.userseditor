@@ -17,7 +17,7 @@ from eea.ldapadmin import ldap_config
 from eea.ldapadmin.nfp_nrc import get_nfps_for_country, get_nrc_roles
 from eea.ldapadmin.roles_editor import role_members
 from eea.usersdb.db_agent import UserNotFound
-from image_processor import scale_to
+from .image_processor import scale_to
 from ldap import (CONSTRAINT_VIOLATION, INSUFFICIENT_ACCESS, NO_SUCH_OBJECT,
                   SCOPE_BASE)
 from OFS.PropertyManager import PropertyManager
@@ -402,8 +402,8 @@ class UsersEditor(SimpleItem, PropertyManager):
                             'Account created before this field was introduced')
                         }
             new_info.update(REQUEST.form)
-            new_info = user_form.validate(new_info.items())
-        except deform.ValidationFailure, e:
+            new_info = user_form.validate(list(new_info.items()))
+        except deform.ValidationFailure as e:
             errors = {}
 
             for field_error in e.error.children:
@@ -446,8 +446,8 @@ class UsersEditor(SimpleItem, PropertyManager):
                                                              country_code)
 
                             for nfp_role in nfp_roles:
-                                nfps = role_members(agent,
-                                                    nfp_role)['users'].keys()
+                                nfps = list(role_members(agent,
+                                                    nfp_role)['users'].keys())
 
                                 for nfp_id in nfps:
                                     nfp_info = agent.user_info(nfp_id)
@@ -588,7 +588,7 @@ class UsersEditor(SimpleItem, PropertyManager):
 
             return REQUEST.RESPONSE.redirect(self.absolute_url() +
                                              '/change_password_html')
-        except CONSTRAINT_VIOLATION, e:
+        except CONSTRAINT_VIOLATION as e:
             if e.message['info'] in [
                     'Password fails quality checking policy']:
                 try:

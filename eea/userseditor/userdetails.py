@@ -74,7 +74,7 @@ class TemplateRenderer(Implicit):
         try:
             namespace = template.pt_getContext((), options)
         except AttributeError:      # Plone5 compatibility
-            namespace = template.im_self._pt_get_context(
+            namespace = template.__self__._pt_get_context(
                 context, context.REQUEST, options)
 
         namespace['common'] = self.common_factory(context)
@@ -83,7 +83,7 @@ class TemplateRenderer(Implicit):
         if hasattr(template, 'pt_render'):
             return template.pt_render(namespace)
         else:
-            return template.im_self.render(**namespace)
+            return template.__self__.render(**namespace)
 
     def browserview(self, context, name):
         return getMultiAdapter((context, self.aq_parent.REQUEST), name=name)

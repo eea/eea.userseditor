@@ -1,5 +1,5 @@
 def initialize(context):
-    import users_editor
+    from . import users_editor
     from eea.userseditor import userdetails
     constructors = (
         ('manage_addUsersEditor_html',

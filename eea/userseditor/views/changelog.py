@@ -1,6 +1,6 @@
 from Products.Five import BrowserView
-from zope.interface import Interface, Attribute, implements
-from Products.LDAPUserFolder.LDAPUserFolder import LDAPUserFolder
+from zope.interface import Interface, Attribute, implements, implementer
+# from Products.LDAPUserFolder.LDAPUserFolder import LDAPUserFolder
 from eea.usersdb import factories
 from eea.usersdb.db_agent import UserNotFound
 
@@ -14,11 +14,12 @@ class IActionDetails(Interface):
     details = Attribute("Action details in html format")
 
 
+@implementer(IActionDetails)
 class BaseActionDetails(BrowserView):
     """ Generic implementation of IActionDetails
     """
 
-    implements(IActionDetails)
+    # implements(IActionDetails)
 
     @property
     def action_title(self):
@@ -42,9 +43,10 @@ class BaseActionDetails(BrowserView):
         # without the leading slash, since it will match the root acl
         user_folder = self.context.restrictedTraverse("acl_users")
         # Plone compatibility
-        if not isinstance(user_folder, LDAPUserFolder):
-            user_folder = self.context.restrictedTraverse(
-                "acl_users/ldap-plugin/acl_users")
+        # import pdb; pdb.set_trace()
+        # if not isinstance(user_folder, LDAPUserFolder):
+        user_folder = self.context.restrictedTraverse(
+            "acl_users/ldap-plugin/acl_users")
         return factories.agent_from_uf(user_folder)
 
     def merge(self, roles):
