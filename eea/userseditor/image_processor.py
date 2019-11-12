@@ -1,5 +1,4 @@
-# from StringIO import StringIO
-from io import StringIO
+from io import BytesIO
 
 from PIL import Image
 
@@ -30,17 +29,17 @@ def scale_to(filedata, width, height, fill_color):
     Returns JPEG byte data
 
     """
-    imfile = StringIO(filedata)
+    imfile = BytesIO(filedata)
     im = Image.open(imfile)
     im.load()
     photo_size = scaled_size(im, width, height)
     im = im.resize(photo_size, Image.ANTIALIAS)
 
     final_im = Image.new("RGB", (width, height), fill_color)
-    paste_pos = ((width - photo_size[0]) / 2, (height - photo_size[1]) / 2)
+    paste_pos = ((width - photo_size[0]) // 2, (height - photo_size[1]) // 2)
     final_im.paste(im, paste_pos)
 
-    new_image = StringIO()
+    new_image = BytesIO()
     final_im.save(new_image, "JPEG")
     new_image.seek(0)
     return new_image.read()

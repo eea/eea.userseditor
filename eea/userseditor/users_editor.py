@@ -1,3 +1,4 @@
+import functools
 import logging
 import os
 from datetime import datetime, timedelta
@@ -324,7 +325,10 @@ class UsersEditor(SimpleItem, PropertyManager):
             org = user_orgs[0]
             org_id = agent._org_id(org)
             form_data['organisation'] = org_id
-        orgs.sort(lambda x, y: cmp(x['text'], y['text']))
+
+        cmp = functools.cmp_to_key(lambda x, y: (x['text'] > y['text']) - (x['text'] < y['text']))
+        orgs.sort(key=cmp)
+        # orgs.sort(lambda x, y: cmp(x['text'], y['text']))
 
         choices = [('-', '-')]
 

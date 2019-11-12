@@ -45,8 +45,8 @@ class BaseActionDetails(BrowserView):
         # Plone compatibility
         # import pdb; pdb.set_trace()
         # if not isinstance(user_folder, LDAPUserFolder):
-        user_folder = self.context.restrictedTraverse(
-            "acl_users/ldap-plugin/acl_users")
+        # user_folder = self.context.restrictedTraverse(
+        #     "acl_users/pasldap/acl_users")
         return factories.agent_from_uf(user_folder)
 
     def merge(self, roles):
