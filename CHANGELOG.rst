@@ -1,4 +1,7 @@
-1.1.39 (unreleased)
+1.1.40 (unreleased)
+------------------
+
+1.1.39 (2019-11-21)
 ------------------
 * propper get id of user [dumitval]
 
