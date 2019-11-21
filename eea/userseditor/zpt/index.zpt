@@ -9,7 +9,7 @@
 
 <p class="not-logged-in" tal:condition="not: options/user_info">
     You must be authenticated to edit your profile.
-    Please <a href="/loggedin">log in</a>.
+    Please <a href="/login">log in</a>.
 </p>
 
 <tal:block define="data options/user_info" condition="data">

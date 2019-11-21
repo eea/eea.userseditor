@@ -1,5 +1,6 @@
 1.1.39 (unreleased)
 ------------------
+* propper get id of user [dumitval]
 
 1.1.38 (2019-03-05)
 ------------------

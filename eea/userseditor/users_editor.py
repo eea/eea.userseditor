@@ -50,9 +50,10 @@ def logged_in_user(request):
     user_id = ''
     if _is_authenticated(request):
         user = request.get('AUTHENTICATED_USER', '')
-        user_id = user.id
+        user_id = user.getId()
 
     return user_id
+
 
 manage_addUsersEditor_html = PageTemplateFile('zpt/add', globals())
 
@@ -114,6 +115,7 @@ def load_template(name, _memo={}):
         from zope.pagetemplate.pagetemplatefile import PageTemplateFile
         _memo[name] = PageTemplateFile(name, globals())
     return _memo[name]
+
 
 CIRCA_USER_SCHEMA = dict(usersdb.db_agent.EIONET_USER_SCHEMA, fax='fax')
 CIRCA_USERS_DN_SUFFIX = 'ou=Users,ou=DATA,ou=eea,o=IRCusers,l=CIRCA'
@@ -666,5 +668,6 @@ class UsersEditor(SimpleItem, PropertyManager):
             _set_session_message(REQUEST, 'message', "No image for you.")
         return REQUEST.RESPONSE.redirect(self.absolute_url() +
                                          '/profile_picture_html')
+
 
 InitializeClass(UsersEditor)

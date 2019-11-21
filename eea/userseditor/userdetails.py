@@ -52,6 +52,7 @@ def load_template(name, _memo={}):
         _memo[name] = Z3Template(name, globals())
     return _memo[name]
 
+
 zope2_wrapper = PageTemplateFile('zpt/zope2_wrapper.zpt', globals())
 
 
@@ -124,7 +125,7 @@ def logged_in_user(request):
     user_id = ''
     if _is_authenticated(request):
         user = request.get('AUTHENTICATED_USER', '')
-        user_id = str(user.id)
+        user_id = str(user.getId())
 
     return user_id
 
