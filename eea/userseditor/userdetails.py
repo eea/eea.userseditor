@@ -268,7 +268,7 @@ class UserDetails(SimpleItem):
             if user['pwdExpired']:
                 user['pwdChanged'] = pwdChangedTime.strftime(
                     '%Y-%m-%d %H:%M:%S') + ' (expired %s days ago)' % (
-                    datetime.now() - pwdChangedTime + timedelta(days=pwdMaxAge)
+                    datetime.now() - pwdChangedTime - timedelta(days=pwdMaxAge)
                 ).days
             else:
                 user['pwdChanged'] = pwdChangedTime.strftime(

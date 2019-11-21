@@ -1,5 +1,7 @@
 1.1.39 (unreleased)
 ------------------
+* bugfix in days since password expired computation [dumitval]
+* protect user photo (view) [dumitval]
 * add jquery_ui for the datepicker [dumitval]
 * remove old links to jquery [dumitval]
 * bugfix in current role listing on user details [dumtival]
