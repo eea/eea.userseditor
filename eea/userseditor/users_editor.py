@@ -29,7 +29,8 @@ from Products.statusmessages.interfaces import IStatusMessage
 from z3c.pt.pagetemplate import PageTemplateFile as ChameleonTemplate
 
 cfg = getConfiguration()
-cfg.environment.update(os.environ)
+if hasattr(cfg, 'environment'):
+    cfg.environment.update(os.environ)
 # constant defined in env
 NETWORK_NAME = getattr(cfg, 'environment', {}).get('NETWORK_NAME', 'Eionet')
 

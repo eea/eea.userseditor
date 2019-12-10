@@ -18,7 +18,8 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from z3c.pt.pagetemplate import PageTemplateFile as ChameleonTemplate
 
 cfg = getConfiguration()
-cfg.environment.update(os.environ)
+if hasattr(cfg, 'environment'):
+    cfg.environment.update(os.environ)
 NETWORK_NAME = getattr(cfg, 'environment', {}).get('NETWORK_NAME', 'EIONET')
 
 log = logging.getLogger(__name__)
