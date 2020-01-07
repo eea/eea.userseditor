@@ -1,6 +1,7 @@
 import logging
 import os
 from datetime import datetime, timedelta
+import six
 
 from zope.component import getMultiAdapter
 
@@ -248,7 +249,7 @@ class UserDetails(SimpleItem):
             org_info = agent.org_info(user['organisation'])
             org_id = org_info.get('id')
 
-            if 'INVALID' in org_id:
+            if 'INVALID' in org_id and not isinstance(org_id, six.text_type):
                 user['organisation'] = org_id.decode('utf8')
             user['organisation_title'] = org_info['name']
         else:
