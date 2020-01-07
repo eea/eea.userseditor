@@ -1,5 +1,5 @@
 from Products.Five import BrowserView
-from zope.interface import Interface, Attribute, implements, implementer
+from zope.interface import Interface, Attribute, implementer
 # from Products.LDAPUserFolder.LDAPUserFolder import LDAPUserFolder
 from eea.usersdb import factories
 from eea.usersdb.db_agent import UserNotFound
@@ -18,8 +18,6 @@ class IActionDetails(Interface):
 class BaseActionDetails(BrowserView):
     """ Generic implementation of IActionDetails
     """
-
-    # implements(IActionDetails)
 
     @property
     def action_title(self):
