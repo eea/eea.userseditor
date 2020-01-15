@@ -1,5 +1,6 @@
 1.1.39 (unreleased)
 ------------------
+* fix fetching of error message [dumitval]
 * remove unused import [dumitval]
 * Fix decode error on user details page [dumitval]
 * bugfix in days since password expired computation [dumitval]

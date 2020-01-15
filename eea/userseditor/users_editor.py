@@ -594,7 +594,7 @@ class UsersEditor(SimpleItem, PropertyManager):
             return REQUEST.RESPONSE.redirect(self.absolute_url() +
                                              '/change_password_html')
         except CONSTRAINT_VIOLATION as e:
-            if e.message['info'] in [
+            if e.args[0]['info'] in [
                     'Password fails quality checking policy']:
                 try:
                     defaultppolicy = agent.conn.search_s(
@@ -603,11 +603,11 @@ class UsersEditor(SimpleItem, PropertyManager):
                         SCOPE_BASE)
                     p_length = defaultppolicy[0][1]['pwdMinLength'][0]
                     message = '%s (min. %s characters)' % (
-                        e.message['info'], p_length)
+                        e.args[0]['info'], p_length)
                 except NO_SUCH_OBJECT:
-                    message = e.message['info']
+                    message = e.args[0]['info']
             else:
-                message = e.message['info']
+                message = e.args[0]['info']
             IStatusMessage(REQUEST).add(message, type='error')
 
             return REQUEST.RESPONSE.redirect(self.absolute_url() +
