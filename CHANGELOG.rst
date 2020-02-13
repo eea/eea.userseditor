@@ -1,4 +1,7 @@
-1.1.39 (unreleased)
+Changelog
+=========
+
+2.0 (2020-02-13)
 ------------------
 * fix fetching of error message [dumitval]
 * remove unused import [dumitval]
