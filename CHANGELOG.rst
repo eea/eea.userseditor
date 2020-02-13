@@ -2,7 +2,7 @@ Changelog
 =========
 
 2.0 (2020-02-13)
-------------------
+--------------------
 * fix fetching of error message [dumitval]
 * remove unused import [dumitval]
 * Fix decode error on user details page [dumitval]
@@ -21,166 +21,166 @@ Changelog
   (no longer using authenticated user's credentials) [dumitval]
 
 1.1.38 (2019-03-05)
-------------------
+--------------------
 * add and use bind credentials for unrestricted search [dumitval]
 
 1.1.37 (2018-06-12)
-------------------
+--------------------
 * avoid crash if uid is not sent to the user details page [dumitval]
 
 1.1.36 (2018-04-27)
-------------------
+--------------------
 * add secondary ldap bind auth for unlimited search [dumitval]
 
 1.1.35 (2018-03-14)
-------------------
+--------------------
 * raise NotFound for disabled users (user directory) [dumitval]
 
 1.1.34 (2018-02-12)
-------------------
+--------------------
 * show the date of the last password change in user details page
   refs #92555 [dumitval]
 
 1.1.33 (2018-02-09)
-------------------
+--------------------
 * clearly mark an invalid organisation setting on user details [dumitval]
 
 1.1.32 (2017-06-19)
-------------------
+--------------------
 * password reset supports stricter password policy in ldap [dumitval]
 
 1.1.31 (2016-11-22)
-------------------
+--------------------
 * add os environ to zope environment [dumitval]
 
 1.1.30 (2016-11-21)
-------------------
+--------------------
 * bugfix for users changing Organisation [dumitval]
 
 1.1.29 (2016-10-10)
-------------------
+--------------------
 * show roles at the time a user was disabled [dumitval]
 
 1.1.28 (2016-10-03)
-------------------
+--------------------
 * add organisation title in national language to the organisation
   selection list [dumitval]
 * add Organisation title (if valid link available)
   and Department to the user details page [dumitval]
 
 1.1.27 (2015-11-24)
-------------------
+--------------------
 * fix crash in user details when organisation from user's history was
   deleted [dumitval]
 
 1.1.26 (2015-06-08)
-------------------
+--------------------
 * Bug fix: fixed user profile editor for missing organisation field
   [tiberich #26247]
 
 1.1.25 (2015-05-19)
-------------------
+--------------------
 * Bug fix: call agent._get_metadata with userdn, not user id
   [tiberich]
 
 1.1.24 (2015-04-14)
-------------------
+--------------------
 * is_manager replaced by can_edit_users, bound to permission, not role
   [dumitval]
 
 1.1.23 (2015-03-30)
-------------------
+--------------------
 * Change: use bind=True in operations to allow retrieving the email address
   [tiberich #24362]
 
 1.1.22 (2015-01-15)
-------------------
+--------------------
 * Bug fix: lineup arrows indicators in changelog with the rest of the text
   [tiberich #20422]
 * Bug fix: don't show a user as disabled if he's not really disabled
   [tiberich #22487]
 
 1.1.21 (2014-10-10)
-------------------
+--------------------
 * Bug fix: removed the visual icon ids, replaced them with some simple arrows
   [tiberich #20422]
 
 1.1.20 (2014-09-24)
-------------------
+--------------------
 * Feature: added RESET_ACCOUNT view for the changelog
   [tiberich #9164]
 
 1.1.19 (2014-09-19)
-------------------
+--------------------
 * Added method to retrieve user organisation membership
   [tiberich #20832]
 
 1.1.18 (2014-07-15)
-------------------
+--------------------
 * Bug fix: fix case when editing user profile and an Organisation Editor was
   not found
   [tiberich #19143]
 
 1.1.17 (2014-07-03)
-------------------
+--------------------
 * Bug fix: remove all organisations for a user before changing his organisation
   [tiberich #19143]
 
 1.1.16 (2014-07-02)
-------------------
+--------------------
 * Bug fix: use the organisation membership for a member when showing his organisation
   in the edit form, instead of the 'o' field
   [tiberich #19143]
 
 1.1.15 (2014-07-02)
-------------------
+--------------------
 * Bug fix: use the groupware standard_template when Zope is a Naaya groupware
   application
   [tiberich #19143]
 
 1.1.14 (2014-07-01)
-------------------
+--------------------
 * Bug fix: don't fail when removing user from org if user is not in org
   [tiberich #19143]
 
 1.1.13 (2014-07-01)
-------------------
+--------------------
 * Bug fix: use alternate agent to avoid insufficient permissions to perform
   LDAP operations
   [tiberich #19143]
 
 1.1.12 (2014-07-01)
-------------------
+--------------------
 * Bug fix: remove user from old org when changing his organisation
   [tiberich #19143]
 
 1.1.11 (2014-06-30)
-------------------
+--------------------
 * Feature: allow users to select their organisation from a list
   [tiberich #19143]
 
 1.1.10 (2014-06-16)
-------------------
+--------------------
 * Bug fix: use the proper author name based on logged in user in changelog
   for user operations
   [tiberich #20081]
 
 1.1.9 (2014-06-16)
-------------------
+--------------------
 * Bug fix: display the proper organisation name in changelog
   [tiberich #20081]
 
 1.1.8 (2014-06-16)
-------------------
+--------------------
 * Bug fix: added views for the ADD_PENDING_TO_ORG changelog action
   [tiberich #20081]
 
 1.1.7 (2014-06-10)
-------------------
+--------------------
 * Bugfix related to the encoding of role descriptions [dumitval]
 
 1.1.6 (2014-05-12)
-------------------
+--------------------
 * Bug fix: don't take into consideration "owner of role" when
   displaying history of roles
   [tiberich #19565]
