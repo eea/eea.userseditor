@@ -1,6 +1,9 @@
 Changelog
 =========
 
+2.1-dev0 - (unreleased)
+---------------------------
+
 2.0 (2020-02-13)
 --------------------
 * fix fetching of error message [dumitval]
@@ -234,4 +237,3 @@ Changelog
 --------------------
 * "EIONET" string configurable by env "NETWORK_NAME" [simiamih]
 * updating info in legacy ldap for nonexisting user fails silently [simiamih]
-
