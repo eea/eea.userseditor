@@ -101,7 +101,7 @@ class TemplateRenderer(Implicit):
             try:
                 layout = self.aq_parent.getLayoutTool().getCurrentSkin()
                 main_template = layout.getTemplateById('standard_template')
-            except:
+            except Exception:
                 main_template = self.aq_parent.restrictedTraverse(
                     'standard_template.pt')
             main_page_macro = main_template.macros['page']
@@ -238,7 +238,7 @@ class UserDetails(SimpleItem):
 
         for (role_id, attrs) in ldap_roles:
             roles.append((role_id,
-                          attrs.get('description', ('', ))[0].decode('utf8')))
+                          attrs.get('description', (b'', ))[0].decode('utf8')))
         user = agent.user_info(uid)
         user['jpegPhoto'] = agent.get_profile_picture(uid)
         user['certificate'] = agent.get_certificate(uid)
