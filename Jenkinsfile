@@ -130,7 +130,7 @@ pipeline {
       }
     }
 
-/*    stage('Pull Request') {
+   stage('Pull Request') {
       when {
         not {
           environment name: 'CHANGE_ID', value: ''
@@ -165,7 +165,7 @@ pipeline {
           }
         }
       }
-    }*/
+    }
 
   }
 
