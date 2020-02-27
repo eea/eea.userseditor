@@ -8,75 +8,100 @@ Changelog
 
 2.0 (2020-02-13)
 --------------------
-* fix fetching of error message [dumitval]
-* remove unused import [dumitval]
-* Fix decode error on user details page [dumitval]
-* bugfix in days since password expired computation [dumitval]
-* protect user photo (view) [dumitval]
-* add jquery_ui for the datepicker [dumitval]
-* remove old links to jquery [dumitval]
-* bugfix in current role listing on user details [dumtival]
-* use select2 instead of selectize [dumitval]
-* Switch UserDetails default view to browser view [tiberich]
-* allow members of eea or eionet roles to view roles of other members [dumitval]
-* fix for mandatory status of reasonToCreate in profile editor [dumitval]
-* handle deleted users in the Account changelog [dumitval]
-* get password max age from the dedicated LDAP user [dumitval]
+* fix fetching of error message
+  [dumitval]
+* remove unused import
+  [dumitval]
+* Fix decode error on user details page
+  [dumitval]
+* bugfix in days since password expired computation
+  [dumitval]
+* protect user photo (view)
+  [dumitval]
+* add jquery_ui for the datepicker
+  [dumitval]
+* remove old links to jquery
+  [dumitval]
+* bugfix in current role listing on user details
+  [dumtival]
+* use select2 instead of selectize
+  [dumitval]
+* Switch UserDetails default view to browser view
+  [tiberich]
+* allow members of eea or eionet roles to view roles of other members
+* fix for mandatory status of reasonToCreate in profile editor
+  [dumitval]
+* handle deleted users in the Account changelog
+  [dumitval]
+* get password max age from the dedicated LDAP user
+  [dumitval]
 * bind with special user credentials on Eionet User Editor
-  (no longer using authenticated user's credentials) [dumitval]
+  (no longer using authenticated user's credentials)
+  [dumitval]
 
 1.1.38 (2019-03-05)
 --------------------
-* add and use bind credentials for unrestricted search [dumitval]
+* add and use bind credentials for unrestricted search
+  [dumitval]
 
 1.1.37 (2018-06-12)
 --------------------
-* avoid crash if uid is not sent to the user details page [dumitval]
+* avoid crash if uid is not sent to the user details page
+  [dumitval]
 
 1.1.36 (2018-04-27)
 --------------------
-* add secondary ldap bind auth for unlimited search [dumitval]
+* add secondary ldap bind auth for unlimited search
+  [dumitval]
 
 1.1.35 (2018-03-14)
 --------------------
-* raise NotFound for disabled users (user directory) [dumitval]
+* raise NotFound for disabled users (user directory)
+  [dumitval]
 
 1.1.34 (2018-02-12)
 --------------------
 * show the date of the last password change in user details page
-  refs #92555 [dumitval]
+  [dumitval refs #92555]
 
 1.1.33 (2018-02-09)
 --------------------
-* clearly mark an invalid organisation setting on user details [dumitval]
+* clearly mark an invalid organisation setting on user details
+  [dumitval]
 
 1.1.32 (2017-06-19)
 --------------------
-* password reset supports stricter password policy in ldap [dumitval]
+* password reset supports stricter password policy in ldap
+  [dumitval]
 
 1.1.31 (2016-11-22)
 --------------------
-* add os environ to zope environment [dumitval]
+* add os environ to zope environment
+  [dumitval]
 
 1.1.30 (2016-11-21)
 --------------------
-* bugfix for users changing Organisation [dumitval]
+* Bug fix: fixed for users changing Organisation
+  [dumitval]
 
 1.1.29 (2016-10-10)
 --------------------
-* show roles at the time a user was disabled [dumitval]
+* show roles at the time a user was disabled
+  [dumitval]
 
 1.1.28 (2016-10-03)
 --------------------
 * add organisation title in national language to the organisation
-  selection list [dumitval]
+  selection list
+  [dumitval]
 * add Organisation title (if valid link available)
-  and Department to the user details page [dumitval]
+  and Department to the user details page
+  [dumitval]
 
 1.1.27 (2015-11-24)
 --------------------
-* fix crash in user details when organisation from user's history was
-  deleted [dumitval]
+* fix crash in user details when organisation from user's history was deleted
+  [dumitval]
 
 1.1.26 (2015-06-08)
 --------------------
@@ -182,7 +207,8 @@ Changelog
 
 1.1.7 (2014-06-10)
 --------------------
-* Bugfix related to the encoding of role descriptions [dumitval]
+* Bugfix related to the encoding of role descriptions
+  [dumitval]
 
 1.1.6 (2014-05-12)
 --------------------
@@ -199,7 +225,8 @@ Changelog
 
 1.1.4 (2014-03-07)
 --------------------
-* added edit link for managers on user index [dumitval]
+* added edit link for managers on user index
+  [dumitval]
 * Feature: added support for pending membership to organisations
   [tiberich #15263]
 * Feature: improved log entry views by compacting multiple entries
@@ -208,34 +235,44 @@ Changelog
 
 1.1.3 (2014-01-10)
 --------------------
-* remove new password from confirmation mail [dumitval]
+* remove new password from confirmation mail
+  [dumitval]
 
 1.1.2 (2013-10-29)
 --------------------
-* wording in templates [dumitval]
+* wording in templates
+  [dumitval]
 
 1.1.1 (2013-09-05)
 --------------------
-* #15628; api change in eea.usersdb [simiamih]
+* api change in eea.usersdb
+  [simiamih refs #15628]
 
 1.1.0 (2013-02-21)
 --------------------
-* feature: compare userprofiles [simiamih]
-* feature: object to display Eionet Member public page [simiamih]
+* Feature: compare userprofiles
+  [simiamih]
+* Feature: object to display Eionet Member public page
+  [simiamih]
 
 1.0.3 (2012-10-29)
 --------------------
-* removed Circa encoding validation [simiamih]
+* removed Circa encoding validation
+  [simiamih]
 
 1.0.2 (2012-07-19)
 --------------------
-* fixed circa agent _user_id call [simiamih]
+* Bug fix: fixed circa agent _user_id call
+  [simiamih]
 
 1.0.1 (2012-07-19)
 --------------------
-* Send mail when changing password [bogdatan]
+* Send mail when changing password
+  [bogdatan]
 
 1.0.0 (2012-06-22)
 --------------------
-* "EIONET" string configurable by env "NETWORK_NAME" [simiamih]
-* updating info in legacy ldap for nonexisting user fails silently [simiamih]
+* "EIONET" string configurable by env "NETWORK_NAME"
+  [simiamih]
+* updating info in legacy ldap for nonexisting user fails silently
+  [simiamih]

@@ -3,6 +3,7 @@ pipeline {
 
   environment {
         GIT_NAME = "eea.userseditor"
+        GIT_HISTORYFILE = "docs/HISTORY.txt"
         SONARQUBE_TAGS = "plone5demo.eionet.europa.eu"
     }
 

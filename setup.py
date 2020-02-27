@@ -1,4 +1,4 @@
-import os
+from os.path import join
 from setuptools import setup, find_packages
 
 NAME = "eea.userseditor"
@@ -11,7 +11,7 @@ setup(name=NAME,
       long_description_content_type="text/x-rst",
       long_description=(
           open("README.rst").read() + "\n" +
-          open("CHANGELOG.rst").read()
+          open(join("docs", "HISTORY.txt")).read(),
       ),
       author='Eau de Web',
       author_email='office@eaudeweb.ro',
@@ -19,6 +19,10 @@ setup(name=NAME,
       include_package_data=True,
       platforms=['OS Independent'],
       zip_safe=False,
-      install_requires=['eea.usersdb>=1.3.40', 'deform', 'phonenumbers',
-                        'six'],
-      )
+      install_requires=[
+            'eea.usersdb>=1.3.40',
+            'deform',
+            'phonenumbers',
+            'six'
+      ],
+)
