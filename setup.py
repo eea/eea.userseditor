@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 NAME = "eea.userseditor"
 PATH = NAME.split('.') + ['version.txt']
-VERSION = open(os.path.join(*PATH)).read().strip()
+VERSION = open(join(*PATH)).read().strip()
 
 setup(name=NAME,
       version=VERSION,
