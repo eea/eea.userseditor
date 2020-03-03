@@ -1,5 +1,15 @@
 Eionet LDAP tools
 =================
+ 
+.. image:: https://ci.eionet.europa.eu/buildStatus/icon?job=Eionet/eea.userseditor/develop&subject=develop
+  :target: https://ci.eionet.europa.eu/job/Eionet/job/eea.userseditor/job/develop/display/redirect
+  :alt: Develop
+.. image:: https://ci.eionet.europa.eu/buildStatus/icon?job=Eionet/eea.userseditor/master&subject=master
+  :target: https://ci.eionet.europa.eu/job/Eionet/job/eea.userseditor/job/master/display/redirect
+  :alt: Master
+.. image:: https://img.shields.io/github/v/release/eea/eea.userseditor
+  :target: https://eggrepo.eea.europa.eu/d/eea.userseditor/
+  :alt: Release
 
 This package provides web forms for user interaction with the Eionet LDAP
 account system. Users can modify personal information and change their
