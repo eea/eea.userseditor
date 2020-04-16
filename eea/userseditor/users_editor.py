@@ -227,7 +227,7 @@ class UsersEditor(SimpleItem, PropertyManager):
             try:
                 layout = self.aq_parent.getLayoutTool().getCurrentSkin()
                 main_template = layout.getTemplateById('standard_template')
-            except:
+            except Exception:
                 main_template = self.aq_parent.restrictedTraverse(
                     'standard_template.pt')
             main_page_macro = main_template.macros['page']
@@ -327,7 +327,8 @@ class UsersEditor(SimpleItem, PropertyManager):
             org_id = agent._org_id(org)
             form_data['organisation'] = org_id
 
-        cmp = functools.cmp_to_key(lambda x, y: (x['text'] > y['text']) - (x['text'] < y['text']))
+        cmp = functools.cmp_to_key(
+            lambda x, y: (x['text'] > y['text']) - (x['text'] < y['text']))
         orgs.sort(key=cmp)
         # orgs.sort(lambda x, y: cmp(x['text'], y['text']))
 
@@ -354,7 +355,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         country_code = object()
         try:
             org_info = agent.org_info(form_data['organisation'])
-        except:
+        except Exception:
             pass
         else:
             country_code = org_info['country']
@@ -451,8 +452,9 @@ class UsersEditor(SimpleItem, PropertyManager):
                                                              country_code)
 
                             for nfp_role in nfp_roles:
-                                nfps = list(role_members(agent,
-                                                    nfp_role)['users'].keys())
+                                nfps = list(
+                                    role_members(agent,
+                                                 nfp_role)['users'].keys())
 
                                 for nfp_id in nfps:
                                     nfp_info = agent.user_info(nfp_id)

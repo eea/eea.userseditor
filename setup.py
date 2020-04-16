@@ -20,9 +20,14 @@ setup(name=NAME,
       platforms=['OS Independent'],
       zip_safe=False,
       install_requires=[
-            'eea.usersdb>=1.3.40',
-            'deform',
-            'phonenumbers',
-            'six'
+          'eea.usersdb>=1.3.40',
+          'deform',
+          'phonenumbers',
+          'six'
       ],
-)
+      extras_require={
+          'test': [
+              'eea.ldapadmin',
+          ],
+      },
+      )
