@@ -1,4 +1,5 @@
 ''' tests for ui '''
+# encoding: utf-8
 # pylint: disable=super-init-not-called
 import unittest
 from datetime import datetime
@@ -106,6 +107,7 @@ def plaintext(element):
     return re.sub(r'\s\s+', ' ', element.text_content()).strip()
 
 
+# pylint: disable=invalid-encoded-data
 user_data_fixture = {
     'first_name': "Joe",
     'last_name': "Smith",

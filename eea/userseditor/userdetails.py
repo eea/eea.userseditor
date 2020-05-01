@@ -261,6 +261,12 @@ class UserDetails(SimpleItem):
         self._config = PersistentMapping(config)
 
     def _get_ldap_agent(self, bind=True, secondary=False):
+        """_get_ldap_agent.
+
+        :param bind:
+        :param secondary: bind with alternate credentials for different
+                          permissions
+        """
         agent = ldap_config.ldap_agent_with_config(self._config, bind,
                                                    secondary=secondary)
         try:
