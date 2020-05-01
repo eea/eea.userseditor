@@ -1,6 +1,6 @@
+''' changelog module '''
 from Products.Five import BrowserView
 from zope.interface import Interface, Attribute, implementer
-# from Products.LDAPUserFolder.LDAPUserFolder import LDAPUserFolder
 from eea.usersdb import factories
 from eea.usersdb.db_agent import UserNotFound
 
@@ -21,13 +21,22 @@ class BaseActionDetails(BrowserView):
 
     @property
     def action_title(self):
+        """action_title."""
         raise NotImplementedError
 
     def details(self, entry):
+        """details.
+
+        :param entry:
+        """
         self.entry = entry
         return self.index()
 
     def author(self, entry):
+        """author.
+
+        :param entry:
+        """
         if entry['author'] in ['unknown user', 'acl_users']:
             return entry['author']
 
@@ -38,6 +47,7 @@ class BaseActionDetails(BrowserView):
             return u"%s (%s)" % ('Former Eionet member', entry['author'])
 
     def _get_ldap_agent(self):
+        """_get_ldap_agent."""
         # without the leading slash, since it will match the root acl
         user_folder = self.context.restrictedTraverse("acl_users")
         # Plone compatibility
@@ -77,17 +87,24 @@ class BaseActionDetails(BrowserView):
 
 
 class BaseRoleDetails(BaseActionDetails):
+    """BaseRoleDetails."""
 
     def details(self, entry):
+        """details.
+
+        :param entry:
+        """
         roles = [x['role'] for x in entry['data']]
         self.roles = self.merge(roles)
         return self.index()
 
 
 class BaseOrganisationDetails(object):
+    """BaseOrganisationDetails."""
 
     @property
     def organisation(self):
+        """organisation."""
         for entry in self.entry['data']:
             org = entry.get('organisation')
             if org:
@@ -97,6 +114,7 @@ class BaseOrganisationDetails(object):
 
     @property
     def organisation_id(self):
+        """organisation_id."""
         for entry in self.entry['data']:
             return entry.get('organisation')
 

@@ -1,3 +1,5 @@
+''' userdetails module '''
+# pylint: disable=dangerous-default-value
 import logging
 import os
 from datetime import datetime, timedelta
@@ -31,24 +33,34 @@ manage_add_userdetails_html.ldap_config_edit_macro = ldap_config.edit_macro
 manage_add_userdetails_html.config_defaults = lambda: ldap_config.defaults
 
 
-def manage_add_userdetails(parent, id, REQUEST=None):
+def manage_add_userdetails(parent, tool_id, REQUEST=None):
     """ Create a new UserDetails object """
     form = (REQUEST.form if REQUEST is not None else {})
     config = ldap_config.read_form(form)
     obj = UserDetails(config)
-    obj.title = form.get('title', id)
-    obj._setId(id)
-    parent._setObject(id, obj)
+    obj.title = form.get('title', tool_id)
+    obj._setId(tool_id)
+    parent._setObject(tool_id, obj)
 
     if REQUEST is not None:
         REQUEST.RESPONSE.redirect(parent.absolute_url() + '/manage_workspace')
 
 
 def _is_authenticated(request):
-    return ('Authenticated' in request.AUTHENTICATED_USER.getRoles())
+    """_is_authenticated.
+
+    :param request:
+    """
+    return 'Authenticated' in request.AUTHENTICATED_USER.getRoles()
 
 
 def load_template(name, context=None, _memo={}):
+    """load_template.
+
+    :param name:
+    :param context:
+    :param _memo:
+    """
     if name not in _memo:
         tpl = ChameleonTemplate(name)
 
@@ -66,10 +78,17 @@ plone5_wrapper = PageTemplateFile('zpt/plone5_wrapper.zpt', globals())
 
 
 class TemplateRenderer(Implicit):
+    """TemplateRenderer."""
+
     def __init__(self, common_factory=lambda ctx: {}):
         self.common_factory = common_factory
 
     def render(self, name, **options):
+        """render.
+
+        :param name:
+        :param options:
+        """
         context = self.aq_parent
         template = load_template(name, context)
 
@@ -84,13 +103,21 @@ class TemplateRenderer(Implicit):
 
         if hasattr(template, 'pt_render'):
             return template.pt_render(namespace)
-        else:
-            return template.__self__.render(**namespace)
+        return template.__self__.render(**namespace)
 
     def browserview(self, context, name):
+        """browserview.
+
+        :param context:
+        :param name:
+        """
         return getMultiAdapter((context, self.aq_parent.REQUEST), name=name)
 
     def wrap(self, body_html):
+        """wrap.
+
+        :param body_html:
+        """
         context = self.aq_parent
         plone = False
         # Naaya groupware integration. If present, use the standard template
@@ -124,27 +151,35 @@ class TemplateRenderer(Implicit):
 
 
 class CommonTemplateLogic(object):
+    """CommonTemplateLogic."""
+
     def __init__(self, context):
         self.context = context
 
     def _get_request(self):
+        """_get_request."""
         return self.context.REQUEST
 
     def base_url(self):
+        """base_url."""
         return self.context.absolute_url()
 
     def portal_url(self):
+        """base_url."""
         return self.context.portal_url()
 
     def is_authenticated(self):
+        """is_authenticated."""
         return _is_authenticated(self._get_request())
 
     def can_edit_users(self):
+        """can_edit_users."""
         user = self.context.REQUEST.AUTHENTICATED_USER
 
         return bool(user.has_permission(EIONET_EDIT_USERS, self.context))
 
     def can_view_roles(self):
+        """can_view_roles."""
         if not self.is_authenticated():
             return False
 
@@ -161,6 +196,7 @@ class CommonTemplateLogic(object):
 
     @property
     def macros(self):
+        """macros."""
         return load_template('zpt/macros.zpt').macros
 
     @property
@@ -171,6 +207,10 @@ class CommonTemplateLogic(object):
 
 
 def logged_in_user(request):
+    """logged_in_user.
+
+    :param request:
+    """
     user_id = ''
 
     if _is_authenticated(request):
@@ -183,6 +223,8 @@ def logged_in_user(request):
 
 
 class UserDetails(SimpleItem):
+    """UserDetails."""
+
     meta_type = 'Eionet User Details'
     security = ClassSecurityInfo()
     icon = '++resource++eea.userseditor-www/users_editor.gif'
@@ -202,6 +244,7 @@ class UserDetails(SimpleItem):
     security.declareProtected(view_management_screens, 'get_config')
 
     def get_config(self):
+        """get_config."""
         config = dict(getattr(self, '_config', {}))
 
         return config
@@ -287,7 +330,10 @@ class UserDetails(SimpleItem):
     security.declarePublic("simple_profile")
 
     def simple_profile(self, REQUEST):
-        """ """
+        """simple_profile.
+
+        :param REQUEST:
+        """
         uid = REQUEST.form.get('uid')
         user, roles = self._prepare_user_page(uid)
         tr = TemplateRenderer(CommonTemplateLogic)
@@ -298,7 +344,10 @@ class UserDetails(SimpleItem):
     security.declarePublic("userphoto_jpeg")
 
     def userphoto_jpeg(self, REQUEST):
-        """ """
+        """userphoto_jpeg.
+
+        :param REQUEST:
+        """
         uid = REQUEST.form.get('uid')
         agent = self._get_ldap_agent()
         REQUEST.RESPONSE.setHeader('Content-Type', 'image/jpeg')
@@ -308,7 +357,10 @@ class UserDetails(SimpleItem):
     security.declarePublic("usercertificate")
 
     def usercertificate(self, REQUEST):
-        """ """
+        """usercertificate.
+
+        :param REQUEST:
+        """
         uid = REQUEST.form.get('uid')
         agent = self._get_ldap_agent()
         REQUEST.RESPONSE.setHeader('Content-Type', 'application/pkix-cert')

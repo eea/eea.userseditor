@@ -1,16 +1,20 @@
+''' userdetails view '''
 import json
 
 from zope.component import getMultiAdapter
 
 from DateTime import DateTime
-from eea.userseditor.permissions import EIONET_EDIT_USERS
-from eea.userseditor.userdetails import CommonTemplateLogic
 from Products.Five.browser import BrowserView
 from zExceptions import NotFound
 from eea.ldapadmin.ui_common import get_role_name
+from eea.userseditor.permissions import EIONET_EDIT_USERS
+from eea.userseditor.userdetails import CommonTemplateLogic
 
 
+# pylint: disable=too-many-statements,too-many-branches,too-many-locals
 class UserDetailsView(BrowserView):
+    """UserDetailsView."""
+
     def __call__(self):
         REQUEST = self.request
         uid = REQUEST.form.get('uid')
@@ -110,7 +114,7 @@ class UserDetailsView(BrowserView):
                         try:
                             role_description = agent.role_info(role)[
                                 'description']
-                        except:
+                        except Exception:
                             role_description = ("This role doesn't exist "
                                                 "anymore")
                         removed_roles.append((role, role_description))

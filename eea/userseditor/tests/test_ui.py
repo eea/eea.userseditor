@@ -1,15 +1,16 @@
+''' tests for ui '''
+# pylint: disable=super-init-not-called
 import unittest
 from datetime import datetime
 import re
 
-from lxml.html.soupparser import fromstring
 from mock import Mock, patch
-# from plone.api.user import get_current
-from plone.app.testing import (PLONE_FIXTURE,
-                               IntegrationTesting, PloneSandboxLayer)
+from lxml.html.soupparser import fromstring
 from Products.statusmessages.interfaces import IStatusMessage
 from Products.MailHost.interfaces import IMailHost
 from plone.registry.interfaces import IRegistry
+from plone.app.testing import (PLONE_FIXTURE,
+                               IntegrationTesting, PloneSandboxLayer)
 from zope.component import getUtility
 
 from eea.userseditor.users_editor import UsersEditor
@@ -78,11 +79,19 @@ def base_setup(context, user):
 
 
 def parse_html(html):
+    """parse_html.
+
+    :param html:
+    """
     return fromstring(re.sub(r'\s+', ' ', html))
     # return fromstring(html)
 
 
 def status_messages(request):
+    """status_messages.
+
+    :param request:
+    """
     messages = {}
     for message in IStatusMessage(request).show():
         messages[message.type] = message.message
@@ -90,7 +99,10 @@ def status_messages(request):
 
 
 def plaintext(element):
-    import re
+    """plaintext.
+
+    :param element:
+    """
     return re.sub(r'\s\s+', ' ', element.text_content()).strip()
 
 
@@ -117,12 +129,15 @@ org_data_fixture = {
 
 
 def stubbed_renderer():
+    """stubbed_renderer."""
     renderer = TemplateRenderer(CommonTemplateLogic)
     renderer.wrap = lambda html: "<html>%s</html>" % html
     return renderer
 
 
 class MockLdapAgent(Mock):
+    """MockLdapAgent."""
+
     def __init__(self, *args, **kwargs):
         super(MockLdapAgent, self).__init__(*args, **kwargs)
         self._user_info = dict(user_data_fixture)
@@ -131,27 +146,45 @@ class MockLdapAgent(Mock):
         self.new_action.__exit__ = Mock(return_value=None)
 
     def user_info(self, user_id):
+        """user_info.
+
+        :param user_id:
+        """
         return self._user_info
 
     def all_organisations(self):
+        """all_organisations."""
         return {}
 
 
 class StubbedUsersEditor(UsersEditor):
+    """StubbedUsersEditor."""
+
     def __init__(self):
         # self._render_template = stubbed_renderer()
         pass
 
     def _render_template(self, name, **options):
+        """_render_template.
+
+        :param name:
+        :param options:
+        """
         from eea.userseditor.users_editor import load_template
         options.update({'network_name': NETWORK_NAME})
         return "<html>%s</html>" % load_template(name)(**options)
 
     def absolute_url(self):
+        """absolute_url."""
         return "URL"
 
 
 def mock_user(user_id, user_pw):
+    """mock_user.
+
+    :param user_id:
+    :param user_pw:
+    """
     user = Mock()
     user.getId.return_value = user_id
     user.__ = user_pw
@@ -159,6 +192,7 @@ def mock_user(user_id, user_pw):
 
 
 class AccountUITest(unittest.TestCase):
+    """AccountUITest."""
 
     layer = INTEGRATION_TESTING
 
@@ -176,6 +210,7 @@ class AccountUITest(unittest.TestCase):
         self.ui._get_ldap_agent = Mock(return_value=self.mock_agent)
 
     def test_edit_form(self):
+        """test_edit_form."""
         page = parse_html(self.ui.edit_account_html(self.request))
 
         txt = lambda xp: plaintext(page.xpath(xp)[0])
@@ -203,6 +238,10 @@ class AccountUITest(unittest.TestCase):
 
     @patch('eea.userseditor.users_editor.datetime')
     def test_submit_edit(self, mock_datetime):
+        """test_submit_edit.
+
+        :param mock_datetime:
+        """
         mock_datetime.now.return_value = datetime(2010, 12, 16, 13, 45, 21)
         self.request.form = dict(user_data_fixture)
         self.request.method = 'POST'
@@ -218,6 +257,7 @@ class AccountUITest(unittest.TestCase):
                          {'info': 'Profile saved (2010-12-16 13:45:21)'})
 
     def test_password_form(self):
+        """test_password_form."""
         page = parse_html(self.ui.change_password_html(self.request))
 
         txt = lambda xp: plaintext(page.xpath(xp)[0])
@@ -232,6 +272,7 @@ class AccountUITest(unittest.TestCase):
                                '[@name="new_password_confirm"]'))
 
     def test_submit_new_password(self):
+        """test_submit_new_password."""
         self.request.form = {
             'old_password': "asdf",
             'new_password': "zxcv",
@@ -254,6 +295,7 @@ class AccountUITest(unittest.TestCase):
             "Password changed successfully. You must log in again.")
 
     def test_submit_new_password_bad_old_password(self):
+        """test_submit_new_password_bad_old_password."""
         self.request.form = {
             'old_password': "qwer",
             'new_password': "zxcv",
@@ -272,6 +314,7 @@ class AccountUITest(unittest.TestCase):
                          {'error': 'Old password is wrong'})
 
     def test_submit_new_password_mismatch(self):
+        """test_submit_new_password_mismatch."""
         self.request.form = {
             'old_password': "asdf",
             'new_password': "zxcv",
@@ -289,6 +332,7 @@ class AccountUITest(unittest.TestCase):
 
 
 class NotLoggedInTest(unittest.TestCase):
+    """NotLoggedInTest."""
 
     layer = INTEGRATION_TESTING
 
@@ -304,6 +348,7 @@ class NotLoggedInTest(unittest.TestCase):
         self.mock_agent.org_info = Mock(return_value=org_data_fixture)
 
     def _assert_error_msg_on_index(self):
+        """_assert_error_msg_on_index."""
         page = parse_html(self.ui.index_html(self.request))
         txt = lambda xp: page.xpath(xp)[0].text_content().strip()
         self.assertEqual(txt('//p[@class="not-logged-in"]'),
@@ -311,6 +356,7 @@ class NotLoggedInTest(unittest.TestCase):
                          "Please log in.")
 
     def test_main_page(self):
+        """test_main_page."""
         page = parse_html(self.ui.index_html(self.request))
 
         txt = lambda xp: page.xpath(xp)[0].text_content().strip()
@@ -319,17 +365,20 @@ class NotLoggedInTest(unittest.TestCase):
                          "Please log in.")
 
     def test_edit_form(self):
+        """test_edit_form."""
         self.ui.edit_account_html(self.request)
         self.request.RESPONSE.redirect.assert_called_with('URL/')
         self._assert_error_msg_on_index()
 
     def test_password_form(self):
+        """test_password_form."""
         self.ui.change_password_html(self.request)
         self.request.RESPONSE.redirect.assert_called_with('URL/')
         self._assert_error_msg_on_index()
 
 
 class EditOrganisationTest(unittest.TestCase):
+    """EditOrganisationTest."""
 
     layer = INTEGRATION_TESTING
 
@@ -353,6 +402,7 @@ class EditOrganisationTest(unittest.TestCase):
         self.mock_agent.all_organisations = Mock(return_value=all_orgs)
 
     def test_show_by_id(self):
+        """test_show_by_id."""
         self.mock_agent._org_id.return_value = 'bridge_club'
 
         page = parse_html(self.ui.edit_account_html(self.request))
@@ -372,6 +422,7 @@ class EditOrganisationTest(unittest.TestCase):
         self.assertTrue('selected' not in options[2].attrib)
 
     def test_submit_literal(self):
+        """test_submit_literal."""
         user_info = dict(user_data_fixture, organisation=u"My own little club")
         self.request.form = dict(user_info)
 
