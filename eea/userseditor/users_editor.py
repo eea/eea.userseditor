@@ -1,3 +1,6 @@
+''' users_editor module '''
+# pylint: disable=dangerous-default-value,too-many-locals,too-many-statements
+# pylint: disable=too-many-branches
 import functools
 import logging
 import os
@@ -9,24 +12,25 @@ from zope.sendmail.interfaces import IMailDelivery
 
 import deform
 import ldap
+from ldap import (CONSTRAINT_VIOLATION, INSUFFICIENT_ACCESS, NO_SUCH_OBJECT,
+                  SCOPE_BASE)
 from AccessControl import ClassSecurityInfo
 from AccessControl.Permissions import view, view_management_screens
 from App.class_init import InitializeClass
 from App.config import getConfiguration
-from eea import usersdb
-from eea.ldapadmin import ldap_config
-from eea.ldapadmin.nfp_nrc import get_nfps_for_country, get_nrc_roles
-from eea.ldapadmin.roles_editor import role_members
-from eea.usersdb.db_agent import UserNotFound
-from .image_processor import scale_to
-from ldap import (CONSTRAINT_VIOLATION, INSUFFICIENT_ACCESS, NO_SUCH_OBJECT,
-                  SCOPE_BASE)
 from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
 from persistent.mapping import PersistentMapping
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.statusmessages.interfaces import IStatusMessage
 from z3c.pt.pagetemplate import PageTemplateFile as ChameleonTemplate
+
+from eea import usersdb
+from eea.ldapadmin import ldap_config
+from eea.ldapadmin.nfp_nrc import get_nfps_for_country, get_nrc_roles
+from eea.ldapadmin.roles_editor import role_members
+from eea.usersdb.db_agent import UserNotFound
+from .image_processor import scale_to
 
 cfg = getConfiguration()
 if hasattr(cfg, 'environment'):
@@ -44,10 +48,18 @@ HEIGHT = 192
 
 
 def _is_authenticated(request):
-    return ('Authenticated' in request.AUTHENTICATED_USER.getRoles())
+    """_is_authenticated.
+
+    :param request:
+    """
+    return 'Authenticated' in request.AUTHENTICATED_USER.getRoles()
 
 
 def logged_in_user(request):
+    """logged_in_user.
+
+    :param request:
+    """
     user_id = ''
 
     if _is_authenticated(request):
@@ -64,32 +76,46 @@ manage_addUsersEditor_html.ldap_config_edit_macro = ldap_config.edit_macro
 manage_addUsersEditor_html.config_defaults = lambda: ldap_config.defaults
 
 
-def manage_addUsersEditor(parent, id, title="", ldap_server="", REQUEST=None):
+def manage_addUsersEditor(parent, tool_id, title="", ldap_server="",
+                          REQUEST=None):
     """ Adds a new Eionet Users Editor object """
 
     form = (REQUEST.form if REQUEST is not None else {})
     config = ldap_config.read_form(form)
     obj = UsersEditor(config)
-    obj.title = form.get('title', id)
-    obj._setId(id)
-    parent._setObject(id, obj)
+    obj.title = form.get('title', tool_id)
+    obj._setId(tool_id)
+    parent._setObject(tool_id, obj)
 
     if REQUEST is not None:
         REQUEST.RESPONSE.redirect(parent.absolute_url() + '/manage_workspace')
 
 
 def _get_user_id(request):
+    """_get_user_id.
+
+    :param request:
+    """
     return request.AUTHENTICATED_USER.getId()
 
 
 def _is_logged_in(request):
+    """_is_logged_in.
+
+    :param request:
+    """
     if _get_user_id(request) is None:
         return False
-    else:
-        return True
+    return True
 
 
 def load_template(name, context=None, _memo={}):
+    """load_template.
+
+    :param name:
+    :param context:
+    :param _memo:
+    """
     if name not in _memo:
         tpl = ChameleonTemplate(name)
 
@@ -117,6 +143,11 @@ class DualLDAPProxy(object):
         self._legacy_ldap = legacy_ldap
 
     def bind_user(self, user_id, user_pw):
+        """bind_user.
+
+        :param user_id:
+        :param user_pw:
+        """
         self._current_ldap.bind_user(user_id, user_pw)
         try:
             self._legacy_ldap.bind_user(user_id, user_pw)
@@ -124,6 +155,11 @@ class DualLDAPProxy(object):
             log.info("User %r could not bind on CIRCA legacy LDAP", user_id)
 
     def set_user_info(self, user_id, new_info):
+        """set_user_info.
+
+        :param user_id:
+        :param new_info:
+        """
         self._current_ldap.set_user_info(user_id, new_info)
         try:
             self._legacy_ldap.set_user_info(user_id, new_info)
@@ -131,6 +167,12 @@ class DualLDAPProxy(object):
             log.info("User %r doesn't exist in CIRCA legacy LDAP", user_id)
 
     def set_user_password(self, user_id, old_pw, new_pw):
+        """set_user_password.
+
+        :param user_id:
+        :param old_pw:
+        :param new_pw:
+        """
         self._current_ldap.set_user_password(user_id, old_pw, new_pw)
         try:
             self._legacy_ldap.set_user_password(user_id, old_pw, new_pw)
@@ -144,22 +186,39 @@ class DualLDAPProxy(object):
 
 
 class CircaUsersDB(usersdb.UsersDB):
+    """CircaUsersDB."""
+
     user_schema = CIRCA_USER_SCHEMA
 
     def _user_dn(self, user_id):
+        """_user_dn.
+
+        :param user_id:
+        """
         return super(CircaUsersDB, self)._user_dn('%s@circa' % user_id)
 
     def _user_id(self, user_dn, attr={}):
+        """_user_id.
+
+        :param user_dn:
+        :param attr:
+        """
         circa_user_id = super(CircaUsersDB, self)._user_id(user_dn)
         assert '@' in circa_user_id
 
         return circa_user_id.split('@')[0]
 
     def _search_user_in_orgs(self, user_id):
+        """_search_user_in_orgs.
+
+        :param user_id:
+        """
         return []
 
 
 class UsersEditor(SimpleItem, PropertyManager):
+    """UsersEditor."""
+
     meta_type = 'Eionet Users Editor'
     icon = '++resource++eea.userseditor-www/users_editor.gif'
     manage_options = (
@@ -190,6 +249,7 @@ class UsersEditor(SimpleItem, PropertyManager):
     security.declareProtected(view_management_screens, 'get_config')
 
     def get_config(self):
+        """get_config."""
         config = dict(getattr(self, '_config', {}))
 
         return config
@@ -205,6 +265,11 @@ class UsersEditor(SimpleItem, PropertyManager):
         REQUEST.RESPONSE.redirect(self.absolute_url() + '/manage_edit')
 
     def _get_ldap_agent(self, bind=True, secondary=False):
+        """_get_ldap_agent.
+
+        :param bind: bool signifying if the agent will authenticate on server
+        :param secondary: use secondary user credentials, different permission
+        """
         agent = ldap_config.ldap_agent_with_config(self._config, bind,
                                                    secondary=secondary)
         try:
@@ -218,6 +283,11 @@ class UsersEditor(SimpleItem, PropertyManager):
     _plone5_wrapper = PageTemplateFile('zpt/plone5_wrapper.zpt', globals())
 
     def _render_template(self, name, **options):
+        """_render_template.
+
+        :param name:
+        :param options:
+        """
         tmpl = load_template(name)
         # Naaya groupware integration. If present, use the standard template
         # of the current site
@@ -227,7 +297,7 @@ class UsersEditor(SimpleItem, PropertyManager):
             try:
                 layout = self.aq_parent.getLayoutTool().getCurrentSkin()
                 main_template = layout.getTemplateById('standard_template')
-            except:
+            except Exception:
                 main_template = self.aq_parent.restrictedTraverse(
                     'standard_template.pt')
             main_page_macro = main_template.macros['page']
@@ -276,11 +346,8 @@ class UsersEditor(SimpleItem, PropertyManager):
                         pwdChangedTime + timedelta(days=pwdMaxAge)).strftime(
                         '%d %b %Y, %H:%m')
 
-                    if datetime.now() - timedelta(
-                            days=pwdMaxAge) > pwdChangedTime:
-                        user_info['pwdExpired'] = True
-                    else:
-                        user_info['pwdExpired'] = False
+                    user_info['pwdExpired'] = datetime.now() - timedelta(
+                        days=pwdMaxAge) > pwdChangedTime
                 else:
                     user_info['pwdChanged'] = ''
                     user_info['pwdExpired'] = True
@@ -327,9 +394,10 @@ class UsersEditor(SimpleItem, PropertyManager):
             org_id = agent._org_id(org)
             form_data['organisation'] = org_id
 
-        cmp = functools.cmp_to_key(lambda x, y: (x['text'] > y['text']) - (x['text'] < y['text']))
-        orgs.sort(key=cmp)
-        # orgs.sort(lambda x, y: cmp(x['text'], y['text']))
+        comp = functools.cmp_to_key(
+            lambda x, y: (x['text'] > y['text']) - (x['text'] < y['text']))
+        orgs.sort(key=comp)
+        # orgs.sort(lambda x, y: comp(x['text'], y['text']))
 
         choices = [('-', '-')]
 
@@ -354,7 +422,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         country_code = object()
         try:
             org_info = agent.org_info(form_data['organisation'])
-        except:
+        except Exception:
             pass
         else:
             country_code = org_info['country']
@@ -451,8 +519,9 @@ class UsersEditor(SimpleItem, PropertyManager):
                                                              country_code)
 
                             for nfp_role in nfp_roles:
-                                nfps = list(role_members(agent,
-                                                    nfp_role)['users'].keys())
+                                nfps = list(
+                                    role_members(agent,
+                                                 nfp_role)['users'].keys())
 
                                 for nfp_id in nfps:
                                     nfp_info = agent.user_info(nfp_id)
@@ -468,6 +537,12 @@ class UsersEditor(SimpleItem, PropertyManager):
         REQUEST.RESPONSE.redirect(self.absolute_url() + '/edit_account_html')
 
     def _add_to_org(self, agent, org_id, user_id):
+        """_add_to_org.
+
+        :param agent:
+        :param org_id:
+        :param user_id:
+        """
         try:
             agent.add_to_org(org_id, [user_id])
         except ldap.INSUFFICIENT_ACCESS:
@@ -481,6 +556,11 @@ class UsersEditor(SimpleItem, PropertyManager):
                 raise
 
     def _remove_from_all_orgs(self, agent, user_id):
+        """_remove_from_all_orgs.
+
+        :param agent:
+        :param user_id:
+        """
         orgs = agent.user_organisations(user_id)
 
         for org_dn in orgs:
@@ -503,6 +583,12 @@ class UsersEditor(SimpleItem, PropertyManager):
                     raise
 
     def _send_nfp_nrc_email(self, nrc_role_info, user_info, nfp_info):
+        """_send_nfp_nrc_email.
+
+        :param nrc_role_info:
+        :param user_info:
+        :param nfp_info:
+        """
         email_template = load_template('zpt/nfp_nrc_change_organisation.zpt')
         email_password_body = \
             email_template.render(nrc_role_info=nrc_role_info,
@@ -638,10 +724,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         user_id = _get_user_id(REQUEST)
         agent = self._get_ldap_agent(bind=True)
 
-        if agent.get_profile_picture(user_id):
-            has_image = True
-        else:
-            has_image = False
+        has_image = bool(agent.get_profile_picture(user_id))
 
         return self._render_template('zpt/profile_picture.zpt',
                                      user_id=_get_user_id(REQUEST),

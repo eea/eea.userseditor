@@ -1,4 +1,11 @@
+''' eea.userseditor '''
+
+
 def initialize(context):
+    """initialize.
+
+    :param context:
+    """
     from . import users_editor
     from eea.userseditor import userdetails
     constructors = (

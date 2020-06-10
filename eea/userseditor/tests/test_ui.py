@@ -1,98 +1,223 @@
+''' tests for ui '''
+# encoding: utf-8
+# pylint: disable=super-init-not-called
 import unittest
 from datetime import datetime
 import re
 
-from nose import SkipTest
-from lxml.html.soupparser import fromstring
 from mock import Mock, patch
+from lxml.html.soupparser import fromstring
+from Products.statusmessages.interfaces import IStatusMessage
+from Products.MailHost.interfaces import IMailHost
+from plone.registry.interfaces import IRegistry
+from plone.app.testing import (PLONE_FIXTURE,
+                               IntegrationTesting, PloneSandboxLayer)
+from zope.component import getUtility
 
 from eea.userseditor.users_editor import UsersEditor
-from eea.userseditor.users_editor import (SESSION_MESSAGES, SESSION_FORM_DATA,
-                                          SESSION_FORM_ERRORS)
-from eea.usersdb.schema import INVALID_PHONE_MESSAGE, INVALID_URL
-import six
+from eea.userseditor.userdetails import TemplateRenderer, CommonTemplateLogic
 
 
-def plaintext(element):
-    import re
-    return re.sub(r'\s\s+', ' ', element.text_content()).strip()
+class Fixture(PloneSandboxLayer):
+    """ Fixture """
+
+    defaultBases = (PLONE_FIXTURE,)
+
+    def setUpZope(self, app, configurationContext):
+        """ Set up Zope """
+        # Load ZCML
+        import eea.ldapadmin
+        import eea.userseditor
+        import plone.dexterity
+        import plone.app.textfield
+
+        # needed for Dexterity FTI
+        self.loadZCML(package=plone.dexterity)
+
+        # needed for DublinCore behavior
+        self.loadZCML(package=plone.app.dexterity)
+
+        # needed to support RichText in testpage
+        self.loadZCML(package=plone.app.textfield)
+
+        self.loadZCML(package=eea.ldapadmin)
+        self.loadZCML(package=eea.userseditor)
+
+
+FIXTURE = Fixture()
+INTEGRATION_TESTING = IntegrationTesting(
+    bases=(FIXTURE,),
+    name='eea.userseditor:Integration',
+)
+
+
+NETWORK_NAME = 'Eionet'
+
+
+def base_setup(context, user):
+    """ create request based on the PloneSandboxLayer """
+#    context.mock_agent._encoding = 'utf-8'
+#    context.mock_agent.role_leaders = Mock(return_value=([], []))
+#    context.mock_agent.role_infos_in_role.return_value = {}
+#    context.ui._get_ldap_agent = Mock(return_value=context.mock_agent)
+#    context.ui.can_delete_role = Mock(return_value=True)
+#    context.ui.can_edit_members = Mock(return_value=True)
+#    context.ui.can_edit_organisations = Mock(return_value=True)
+#    context.ui.getPhysicalRoot = Mock(return_value=context.layer['app'])
+
+    context.request = context.REQUEST = context.ui.REQUEST = context.layer[
+        'portal'].REQUEST
+    context.request.method = 'POST'
+    context.request.RESPONSE.redirect = Mock()
+    context.request.RESPONSE.setStatus = Mock()
+    context.REQUEST.AUTHENTICATED_USER = user
+    user.getRoles = Mock(return_value=['Authenticated'])
+    context.mailhost = getUtility(IMailHost)
+    registry = getUtility(IRegistry)
+    registry["plone.email_from_address"] = "user-directory@plone.org"
+    registry["plone.email_from_name"] = u"Plone test site"
+    context.mock_agent = MockLdapAgent()
 
 
 def parse_html(html):
+    """parse_html.
+
+    :param html:
+    """
     return fromstring(re.sub(r'\s+', ' ', html))
+    # return fromstring(html)
 
 
-def session_messages(request):
-    return request.SESSION.get(SESSION_MESSAGES)
+def status_messages(request):
+    """status_messages.
+
+    :param request:
+    """
+    messages = {}
+    for message in IStatusMessage(request).show():
+        messages[message.type] = message.message
+    return messages
 
 
+def plaintext(element):
+    """plaintext.
+
+    :param element:
+    """
+    return re.sub(r'\s\s+', ' ', element.text_content()).strip()
+
+
+# pylint: disable=invalid-encoded-data
 user_data_fixture = {
-    'first_name': u"Joe",
-    'last_name': u"Smith",
-    'job_title': u"Lab rat",
-    'email': u"jsmith@example.com",
-    'mobile': u"+45 555 4321",
-    'url': u"http://example.com/~jsmith",
-    'postal_address': u"13 Smithsonian Way, Copenhagen, DK",
-    'phone': u"+45 555 1234",
-    'fax': u"+45 555 6789",
-    'organisation': u"My company",
+    'first_name': "Joe",
+    'last_name': "Smith",
+    'full_name_native': "Joe Șmith",
+    'search_helper': "Joe Smith Șmith",
+    'job_title': "Lab rat",
+    'email': "jsmith@example.com",
+    'mobile': "+40 21 555 4321",
+    'url': "http://example.com/~jsmith",
+    'postal_address': "13 Smithsonian Way, Copenhagen, DK",
+    'phone': "+40 21 555 4322",
+    'fax': "+40 21 555 4323",
+    'organisation': "bridge_club",
+    'department': "My department",
+    'reasonToCreate': "Account created before this field was introduced",
 }
 
-ORG_BY_ID = 'by_id'
+org_data_fixture = {
+    'country': "eu",
+}
+
+
+def stubbed_renderer():
+    """stubbed_renderer."""
+    renderer = TemplateRenderer(CommonTemplateLogic)
+    renderer.wrap = lambda html: "<html>%s</html>" % html
+    return renderer
 
 
 class MockLdapAgent(Mock):
+    """MockLdapAgent."""
+
     def __init__(self, *args, **kwargs):
         super(MockLdapAgent, self).__init__(*args, **kwargs)
         self._user_info = dict(user_data_fixture)
+        self.new_action = Mock
+        self.new_action.__enter__ = Mock(return_value=self.new_action)
+        self.new_action.__exit__ = Mock(return_value=None)
 
     def user_info(self, user_id):
+        """user_info.
+
+        :param user_id:
+        """
         return self._user_info
 
     def all_organisations(self):
+        """all_organisations."""
         return {}
 
 
 class StubbedUsersEditor(UsersEditor):
+    """StubbedUsersEditor."""
+
     def __init__(self):
+        # self._render_template = stubbed_renderer()
         pass
 
     def _render_template(self, name, **options):
+        """_render_template.
+
+        :param name:
+        :param options:
+        """
         from eea.userseditor.users_editor import load_template
+        options.update({'network_name': NETWORK_NAME})
         return "<html>%s</html>" % load_template(name)(**options)
 
     def absolute_url(self):
+        """absolute_url."""
         return "URL"
 
 
 def mock_user(user_id, user_pw):
+    """mock_user.
+
+    :param user_id:
+    :param user_pw:
+    """
     user = Mock()
     user.getId.return_value = user_id
     user.__ = user_pw
     return user
 
 
-def mock_request():
-    request = Mock()
-    request.SESSION = {}
-    return request
-
-
 class AccountUITest(unittest.TestCase):
+    """AccountUITest."""
+
+    layer = INTEGRATION_TESTING
+
     def setUp(self):
         self.ui = StubbedUsersEditor()
-        self.request = mock_request()
-        self.request.AUTHENTICATED_USER = mock_user('jsmith', 'asdf')
-        self.mock_agent = MockLdapAgent()
+        user = mock_user('jsmith', 'asdf')  # get_current()
+        base_setup(self, user)
+        self.mock_agent.user_organisations = Mock(return_value=[
+            {'id': user_data_fixture['organisation'],
+             'text': user_data_fixture['organisation'],
+             'text_native': '', 'ldap': False}
+        ])
+        self.mock_agent.org_info = Mock(return_value=org_data_fixture)
+        self.mock_agent.filter_roles.return_value = []
         self.ui._get_ldap_agent = Mock(return_value=self.mock_agent)
 
     def test_edit_form(self):
+        """test_edit_form."""
         page = parse_html(self.ui.edit_account_html(self.request))
 
         txt = lambda xp: plaintext(page.xpath(xp)[0])
         val = lambda xp: page.xpath(xp)[0].attrib['value']
-        self.assertEqual(txt('//h1'), "EIONET account Edit information")
+        self.assertEqual(txt('//h1'), "Eionet account Edit information")
         self.assertEqual(val('//form//input[@name="first_name:utf8:ustring"]'),
                          user_data_fixture['first_name'])
         self.assertEqual(val('//form//input[@name="last_name:utf8:ustring"]'),
@@ -115,28 +240,31 @@ class AccountUITest(unittest.TestCase):
 
     @patch('eea.userseditor.users_editor.datetime')
     def test_submit_edit(self, mock_datetime):
+        """test_submit_edit.
+
+        :param mock_datetime:
+        """
         mock_datetime.now.return_value = datetime(2010, 12, 16, 13, 45, 21)
         self.request.form = dict(user_data_fixture)
+        self.request.method = 'POST'
 
         self.ui.edit_account(self.request)
 
-        self.mock_agent.bind_user.assert_called_with('jsmith', 'asdf')
         self.request.RESPONSE.redirect.assert_called_with(
             'URL/edit_account_html')
         self.mock_agent.set_user_info.assert_called_with('jsmith',
                                                          user_data_fixture)
 
-        page = parse_html(self.ui.edit_account_html(self.request))
-        txt = lambda xp: page.xpath(xp)[0].text.strip()
-        self.assertEqual(txt('//div[@class="system-msg"]'),
-                         "Profile saved (2010-12-16 13:45:21)")
+        self.assertEqual(status_messages(self.request),
+                         {'info': 'Profile saved (2010-12-16 13:45:21)'})
 
     def test_password_form(self):
+        """test_password_form."""
         page = parse_html(self.ui.change_password_html(self.request))
 
         txt = lambda xp: plaintext(page.xpath(xp)[0])
         exists = lambda xp: len(page.xpath(xp)) > 0
-        self.assertEqual(txt('//h1'), "EIONET account Change password")
+        self.assertEqual(txt('//h1'), "Eionet account Change password")
         self.assertEqual(txt('//p/tt'), "jsmith")
         self.assertTrue(exists('//form//input[@type="password"]'
                                '[@name="old_password"]'))
@@ -146,6 +274,7 @@ class AccountUITest(unittest.TestCase):
                                '[@name="new_password_confirm"]'))
 
     def test_submit_new_password(self):
+        """test_submit_new_password."""
         self.request.form = {
             'old_password': "asdf",
             'new_password': "zxcv",
@@ -168,6 +297,7 @@ class AccountUITest(unittest.TestCase):
             "Password changed successfully. You must log in again.")
 
     def test_submit_new_password_bad_old_password(self):
+        """test_submit_new_password_bad_old_password."""
         self.request.form = {
             'old_password': "qwer",
             'new_password': "zxcv",
@@ -182,13 +312,11 @@ class AccountUITest(unittest.TestCase):
         self.request.RESPONSE.redirect.assert_called_with(
             'URL/change_password_html')
 
-        page = parse_html(self.ui.change_password_html(self.request))
-
-        txt = lambda xp: page.xpath(xp)[0].text.strip()
-        self.assertEqual(txt('//div[@class="error-msg"]'),
-                         "Old password is wrong")
+        self.assertEqual(status_messages(self.request),
+                         {'error': 'Old password is wrong'})
 
     def test_submit_new_password_mismatch(self):
+        """test_submit_new_password_mismatch."""
         self.request.form = {
             'old_password': "asdf",
             'new_password': "zxcv",
@@ -201,20 +329,28 @@ class AccountUITest(unittest.TestCase):
         self.request.RESPONSE.redirect.assert_called_with(
             'URL/change_password_html')
 
-        page = parse_html(self.ui.change_password_html(self.request))
-
-        txt = lambda xp: page.xpath(xp)[0].text.strip()
-        self.assertEqual(txt('//div[@class="error-msg"]'),
-                         "New passwords do not match")
+        self.assertEqual(status_messages(self.request),
+                         {'error': 'New passwords do not match'})
 
 
 class NotLoggedInTest(unittest.TestCase):
+    """NotLoggedInTest."""
+
+    layer = INTEGRATION_TESTING
+
     def setUp(self):
         self.ui = StubbedUsersEditor()
-        self.request = mock_request()
-        self.request.AUTHENTICATED_USER = mock_user(None, '')
+        user = mock_user(None, '')  # get_current()
+        base_setup(self, user)
+        self.mock_agent.user_organisations = Mock(return_value=[
+            {'id': user_data_fixture['organisation'],
+             'text': user_data_fixture['organisation'],
+             'text_native': '', 'ldap': False}
+        ])
+        self.mock_agent.org_info = Mock(return_value=org_data_fixture)
 
     def _assert_error_msg_on_index(self):
+        """_assert_error_msg_on_index."""
         page = parse_html(self.ui.index_html(self.request))
         txt = lambda xp: page.xpath(xp)[0].text_content().strip()
         self.assertEqual(txt('//p[@class="not-logged-in"]'),
@@ -222,6 +358,7 @@ class NotLoggedInTest(unittest.TestCase):
                          "Please log in.")
 
     def test_main_page(self):
+        """test_main_page."""
         page = parse_html(self.ui.index_html(self.request))
 
         txt = lambda xp: page.xpath(xp)[0].text_content().strip()
@@ -230,147 +367,67 @@ class NotLoggedInTest(unittest.TestCase):
                          "Please log in.")
 
     def test_edit_form(self):
+        """test_edit_form."""
         self.ui.edit_account_html(self.request)
         self.request.RESPONSE.redirect.assert_called_with('URL/')
         self._assert_error_msg_on_index()
 
     def test_password_form(self):
+        """test_password_form."""
         self.ui.change_password_html(self.request)
         self.request.RESPONSE.redirect.assert_called_with('URL/')
         self._assert_error_msg_on_index()
 
 
 class EditOrganisationTest(unittest.TestCase):
+    """EditOrganisationTest."""
+
+    layer = INTEGRATION_TESTING
+
     def setUp(self):
         self.ui = StubbedUsersEditor()
-        self.request = mock_request()
-        self.request.AUTHENTICATED_USER = mock_user('jsmith', 'asdf')
-        self.mock_agent = MockLdapAgent()
+        user = mock_user('jsmith', 'asdf')  # get_current()
+        base_setup(self, user)
+        self.mock_agent.user_organisations = Mock(return_value=[
+            {'id': user_data_fixture['organisation'],
+             'text': user_data_fixture['organisation'],
+             'text_native': '', 'ldap': False}
+        ])
+        self.mock_agent.org_info = Mock(return_value=org_data_fixture)
+        self.mock_agent.filter_roles.return_value = []
         self.ui._get_ldap_agent = Mock(return_value=self.mock_agent)
-        all_orgs = {'bridge_club': u"Bridge club", 'poker_club': u"Poker club"}
+        all_orgs = {
+            'bridge_club': {'name': 'Bridge club',
+                            'name_native': 'Bridge club', 'country': 'eu'},
+            'poker_club': {'name': 'Poker club',
+                           'name_native': 'Poker club', 'country': 'eu'}}
         self.mock_agent.all_organisations = Mock(return_value=all_orgs)
 
-    def test_show_literal(self):
-        self.mock_agent._user_info['organisation'] = u"My club"
-
-        page = parse_html(self.ui.edit_account_html(self.request))
-
-        literal_input = page.xpath(
-            '//form'
-            '//input[@name="organisation:utf8:ustring"]')
-        self.assertEqual(len(literal_input), 1)
-        self.assertEqual(literal_input[0].attrib['value'], u"My club")
-
     def test_show_by_id(self):
-        raise SkipTest
-        self.mock_agent._user_info['organisation'] = (ORG_BY_ID, 'bridge_club')
+        """test_show_by_id."""
+        self.mock_agent._org_id.return_value = 'bridge_club'
 
         page = parse_html(self.ui.edit_account_html(self.request))
 
-        select_by_id = page.xpath('//form//select[@name="org_id"]')[0]
+        select_by_id = page.xpath(
+            '//form//select[@name="organisation:utf8:ustring"]')[0]
         options = select_by_id.xpath('option')
         self.assertEqual(len(options), 3)
-        self.assertEqual(options[0].text, u"--")
-        self.assertEqual(options[1].text, u"Bridge club")
+        self.assertEqual(options[0].text, u"-")
+        self.assertEqual(options[1].text,
+                         "Bridge club (Bridge club, bridge_club)")
         self.assertEqual(options[1].attrib['value'], 'bridge_club')
         self.assertEqual(options[1].attrib['selected'], 'selected')
-        self.assertEqual(options[2].text, u"Poker club")
+        self.assertEqual(options[2].text,
+                         "Poker club (Poker club, poker_club)")
         self.assertEqual(options[2].attrib['value'], 'poker_club')
         self.assertTrue('selected' not in options[2].attrib)
 
     def test_submit_literal(self):
+        """test_submit_literal."""
         user_info = dict(user_data_fixture, organisation=u"My own little club")
         self.request.form = dict(user_info)
 
         self.ui.edit_account(self.request)
 
         self.mock_agent.set_user_info.assert_called_with('jsmith', user_info)
-
-    def test_submit_by_id(self):
-        raise SkipTest
-        self.request.form = {
-            'org_type': 'by_id',
-            'org_id': 'bridge_club',
-        }
-
-        self.ui.edit_account(self.request)
-
-        user_info = dict((name, u"") for name in user_data_fixture)
-        user_info['organisation'] = (ORG_BY_ID, 'bridge_club')
-        self.mock_agent.set_user_info.assert_called_with('jsmith', user_info)
-
-
-class EditValidationTest(unittest.TestCase):
-    def setUp(self):
-        self.ui = StubbedUsersEditor()
-        self.request = mock_request()
-        self.request.AUTHENTICATED_USER = mock_user('jsmith', 'asdf')
-        self.mock_agent = MockLdapAgent()
-        self.ui._get_ldap_agent = Mock(return_value=self.mock_agent)
-
-    def test_redirect_and_session_message(self):
-        self.request.form = dict(user_data_fixture, first_name=u"")
-
-        self.ui.edit_account(self.request)
-
-        self.request.RESPONSE.redirect.assert_called_with(
-            'URL/edit_account_html')
-        msg = u"Please correct the errors below and try again."
-        self.assertEqual(session_messages(self.request), {'error': msg})
-
-    def test_values_preserved_if_error(self):
-        tfax = u"+40 1234 5678"
-        self.request.form = dict(user_data_fixture, first_name=u"", fax=tfax)
-
-        self.ui.edit_account(self.request)
-
-        page = parse_html(self.ui.edit_account_html(self.request))
-        val = lambda xp: page.xpath(xp)[0].attrib['value']
-        self.assertEqual(val('//form//input[@name="fax:utf8:ustring"]'), tfax)
-
-    def _test_missing_field(self, name):
-        self.request.form = dict(user_data_fixture, **{name: u""})
-
-        self.ui.edit_account(self.request)
-
-        page = parse_html(self.ui.edit_account_html(self.request))
-
-        txt = lambda xp: plaintext(page.xpath(xp)[0])
-        self.assertEqual(txt('//form//p[@id="error-edit-%s"]' % name),
-                         "Required")
-
-    def test_missing(self):
-        self._test_missing_field('first_name')
-        self._test_missing_field('last_name')
-        self._test_missing_field('email')
-
-    def _test_invalid(self, name, value, message):
-        self.request.form = dict(user_data_fixture, **{name: value})
-
-        self.ui.edit_account(self.request)
-
-        page = parse_html(self.ui.edit_account_html(self.request))
-
-        txt = lambda xp: plaintext(page.xpath(xp)[0])
-        self.assertEqual(txt('//form//p[@id="error-edit-%s"]' % name), message)
-
-    def test_invalid_values(self):
-        self._test_invalid('phone', 'qwer', INVALID_PHONE_MESSAGE)
-        self._test_invalid('mobile', 'qwer', INVALID_PHONE_MESSAGE)
-        self._test_invalid('fax', 'qwer', INVALID_PHONE_MESSAGE)
-        self._test_invalid('url', 'qwer', INVALID_URL)
-        self._test_invalid('email', 'qwer', "Invalid email address")
-
-    def test_error_messages(self):
-        errors = dict((name, "ERROR %s HERE" % name)
-                      for name in user_data_fixture)
-        self.request.SESSION.update({
-            SESSION_FORM_DATA: dict(user_data_fixture),
-            SESSION_FORM_ERRORS: dict(errors),
-        })
-
-        page = parse_html(self.ui.edit_account_html(self.request))
-        txt = lambda xp: plaintext(page.xpath(xp)[0])
-        for name, value in six.iteritems(errors):
-            error_text = txt('//form//p[@id="error-edit-%s"]' % name)
-            self.assertEqual(error_text, value, "Bad error for %s" % name)
