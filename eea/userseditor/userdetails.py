@@ -12,6 +12,7 @@ from AccessControl.Permissions import view_management_screens
 from Acquisition import Implicit
 from App.config import getConfiguration
 from eea.ldapadmin import ldap_config
+from eea.ldapadmin.ui_common import nfp_for_country
 from eea.userseditor.permissions import EIONET_EDIT_USERS
 from ldap import SCOPE_BASE
 from OFS.PropertyManager import PropertyManager
@@ -177,6 +178,22 @@ class CommonTemplateLogic(object):
         user = self.context.REQUEST.AUTHENTICATED_USER
 
         return bool(user.has_permission(EIONET_EDIT_USERS, self.context))
+
+    def can_edit_user(self):
+        """ Check if the authenticated user has permission to edit this
+        particular user. (meaning has general edit permission or
+        the authenticated user is NFP in the country of the user's
+        organisation)."""
+        if self.can_edit_users():
+            return True
+        uid = self.context.REQUEST.AUTHENTICATED_USER.getId()
+        nfp_country = nfp_for_country(self.context)
+        if nfp_country:
+            agent = self.context._get_ldap_agent()
+            for org in agent.orgs_for_user(uid):
+                if agent.org_info(org[0])['country'] == nfp_country:
+                    return True
+        return False
 
     def can_view_roles(self):
         """can_view_roles."""
