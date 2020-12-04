@@ -5,7 +5,7 @@ Changelog
 ---------------------------
 * Change: Update version to 2.4 [valentinab25]
 
-2.4-dev0 - (unreleased)
+2.4 - (2020-12-04)
 ---------------------------
 * add some privileges for NFPs on the user details page
   [valipod]
