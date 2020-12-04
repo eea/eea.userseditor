@@ -1,9 +1,6 @@
 Changelog
 =========
 
-2.5-dev0 - (unreleased)
----------------------------
-
 2.4-dev0 - (unreleased)
 ---------------------------
 * add some privileges for NFPs on the user details page
