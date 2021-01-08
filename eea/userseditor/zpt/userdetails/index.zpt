@@ -88,12 +88,11 @@
             disabled python:user.get('status') == 'disabled';
             can_view_roles common/can_view_roles;
             can_edit_users common/can_edit_users;
-            can_edit_user common/can_edit_user;
             is_authenticated common/is_authenticated;">
 
             <h1 property="foaf:name">
               <tal:block content="user/full_name" />
-              <a tal:condition="can_edit_user"
+              <a tal:condition="can_edit_users"
                 style="background:none"
                 tal:attributes="href string:${common/portal_url}/eionet-account-tools/eionet_account_tools/users/edit_user?id=${user/uid}">
                 <img src="/++resource++eea.userseditor-www/edit.gif" alt="Edit" />

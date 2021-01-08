@@ -3,6 +3,11 @@ Changelog
 
 2.5-dev0 - (unreleased)
 ---------------------------
+* remove NFP edit permission on "own country" users [dumitval]
+* move _is_authenticated, _get_ldap_agent, logged_in_user, nfp_for_country to
+  eea.ldapadmin.logic_common [dumitval]
+* removed _get_user_id duplicate of logged_in_user [dumitval]
+* give NFPs access to the details page of disabled users [dumitval]
 
 2.4 - (2020-12-04)
 ---------------------------

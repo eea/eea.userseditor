@@ -6,6 +6,7 @@ from zope.component import getMultiAdapter
 from DateTime import DateTime
 from Products.Five.browser import BrowserView
 from zExceptions import NotFound
+from eea.ldapadmin.logic_common import _get_ldap_agent, nfp_for_country
 from eea.ldapadmin.ui_common import get_role_name
 from eea.userseditor.permissions import EIONET_EDIT_USERS
 from eea.userseditor.userdetails import CommonTemplateLogic
@@ -36,7 +37,7 @@ class UserDetailsView(BrowserView):
         is_auth = ('Authenticated' in REQUEST.AUTHENTICATED_USER.getRoles())
         # we can only connect to ldap with bind=True if we have an
         # authenticated user
-        agent = self.context._get_ldap_agent(bind=is_auth)
+        agent = _get_ldap_agent(self.context, bind=is_auth)
 
         user_dn = agent._user_dn(uid)
         log_entries = list(reversed(agent._get_metadata(user_dn)))
@@ -102,8 +103,9 @@ class UserDetailsView(BrowserView):
         if user.get('status') == 'disabled':
             auth_user = REQUEST.AUTHENTICATED_USER
 
-            if not bool(auth_user.has_permission(EIONET_EDIT_USERS,
-                                                 self.context)):
+            if not bool(
+                auth_user.has_permission(EIONET_EDIT_USERS, self.context) or
+                    nfp_for_country(self.context)):
                 raise NotFound("User '%s' does not exist" % uid)
             # process log entries to list the roles the user had before
             # being disabled

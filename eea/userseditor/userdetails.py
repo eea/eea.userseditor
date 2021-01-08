@@ -12,7 +12,7 @@ from AccessControl.Permissions import view_management_screens
 from Acquisition import Implicit
 from App.config import getConfiguration
 from eea.ldapadmin import ldap_config
-from eea.ldapadmin.ui_common import nfp_for_country
+from eea.ldapadmin.logic_common import _is_authenticated, _get_ldap_agent
 from eea.userseditor.permissions import EIONET_EDIT_USERS
 from ldap import SCOPE_BASE
 from OFS.PropertyManager import PropertyManager
@@ -45,14 +45,6 @@ def manage_add_userdetails(parent, tool_id, REQUEST=None):
 
     if REQUEST is not None:
         REQUEST.RESPONSE.redirect(parent.absolute_url() + '/manage_workspace')
-
-
-def _is_authenticated(request):
-    """_is_authenticated.
-
-    :param request:
-    """
-    return 'Authenticated' in request.AUTHENTICATED_USER.getRoles()
 
 
 def load_template(name, context=None, _memo={}):
@@ -179,22 +171,6 @@ class CommonTemplateLogic(object):
 
         return bool(user.has_permission(EIONET_EDIT_USERS, self.context))
 
-    def can_edit_user(self):
-        """ Check if the authenticated user has permission to edit this
-        particular user. (meaning has general edit permission or
-        the authenticated user is NFP in the country of the user's
-        organisation)."""
-        if self.can_edit_users():
-            return True
-        uid = self.context.REQUEST.AUTHENTICATED_USER.getId()
-        nfp_country = nfp_for_country(self.context)
-        if nfp_country:
-            agent = self.context._get_ldap_agent()
-            for org in agent.orgs_for_user(uid):
-                if agent.org_info(org[0])['country'] == nfp_country:
-                    return True
-        return False
-
     def can_view_roles(self):
         """can_view_roles."""
         if not self.is_authenticated():
@@ -204,7 +180,7 @@ class CommonTemplateLogic(object):
             return True
 
         user = self.context.REQUEST.AUTHENTICATED_USER
-        agent = self.context._get_ldap_agent()
+        agent = _get_ldap_agent(self.context)
         user_roles = agent.member_roles_info('user', user.getId(), ('uid', ))
 
         for role in user_roles:
@@ -221,22 +197,6 @@ class CommonTemplateLogic(object):
         """ E.g. EIONET, SINAnet etc. """
 
         return NETWORK_NAME
-
-
-def logged_in_user(request):
-    """logged_in_user.
-
-    :param request:
-    """
-    user_id = ''
-
-    if _is_authenticated(request):
-        user = request.get('AUTHENTICATED_USER', '')
-
-        if user:
-            user_id = user.getId()
-
-    return user_id
 
 
 class UserDetails(SimpleItem):
@@ -277,26 +237,10 @@ class UserDetails(SimpleItem):
         super(UserDetails, self).__init__()
         self._config = PersistentMapping(config)
 
-    def _get_ldap_agent(self, bind=True, secondary=False):
-        """_get_ldap_agent.
-
-        :param bind:
-        :param secondary: bind with alternate credentials for different
-                          permissions
-        """
-        agent = ldap_config.ldap_agent_with_config(self._config, bind,
-                                                   secondary=secondary)
-        try:
-            agent._author = logged_in_user(self.REQUEST)
-        except AttributeError:
-            agent._author = "System user"
-
-        return agent
-
     def _prepare_user_page(self, uid):
         """Shared by index_html and simple_profile"""
         is_auth = _is_authenticated(self.REQUEST)
-        agent = self._get_ldap_agent(bind=is_auth)
+        agent = _get_ldap_agent(self, bind=is_auth)
         ldap_roles = sorted(agent.member_roles_info('user',
                                                     uid,
                                                     ('description',)))
@@ -372,7 +316,7 @@ class UserDetails(SimpleItem):
         :param REQUEST:
         """
         uid = REQUEST.form.get('uid')
-        agent = self._get_ldap_agent()
+        agent = _get_ldap_agent(self)
         REQUEST.RESPONSE.setHeader('Content-Type', 'image/jpeg')
 
         return agent.get_profile_picture(uid)
@@ -385,7 +329,7 @@ class UserDetails(SimpleItem):
         :param REQUEST:
         """
         uid = REQUEST.form.get('uid')
-        agent = self._get_ldap_agent()
+        agent = _get_ldap_agent(self)
         REQUEST.RESPONSE.setHeader('Content-Type', 'application/pkix-cert')
 
         return agent.get_certificate(uid)
@@ -399,6 +343,6 @@ class UserDetails(SimpleItem):
         if user_id is None:
             user_id = self.REQUEST.form.get('uid')
 
-        agent = self._get_ldap_agent()
+        agent = _get_ldap_agent(self)
 
         return agent.orgs_for_user(user_id)
