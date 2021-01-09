@@ -59,7 +59,6 @@ def base_setup(context, user):
 #    context.mock_agent._encoding = 'utf-8'
 #    context.mock_agent.role_leaders = Mock(return_value=([], []))
 #    context.mock_agent.role_infos_in_role.return_value = {}
-#    context.ui._get_ldap_agent = Mock(return_value=context.mock_agent)
 #    context.ui.can_delete_role = Mock(return_value=True)
 #    context.ui.can_edit_members = Mock(return_value=True)
 #    context.ui.can_edit_organisations = Mock(return_value=True)
@@ -71,12 +70,13 @@ def base_setup(context, user):
     context.request.RESPONSE.redirect = Mock()
     context.request.RESPONSE.setStatus = Mock()
     context.REQUEST.AUTHENTICATED_USER = user
-    user.getRoles = Mock(return_value=['Authenticated'])
     context.mailhost = getUtility(IMailHost)
     registry = getUtility(IRegistry)
     registry["plone.email_from_address"] = "user-directory@plone.org"
     registry["plone.email_from_name"] = u"Plone test site"
     context.mock_agent = MockLdapAgent()
+    context.mock_agent.filter_roles.return_value = []
+    context.ui._get_ldap_agent = Mock(return_value=context.mock_agent)
 
 
 def parse_html(html):
@@ -210,6 +210,7 @@ class AccountUITest(unittest.TestCase):
         self.mock_agent.org_info = Mock(return_value=org_data_fixture)
         self.mock_agent.filter_roles.return_value = []
         self.ui._get_ldap_agent = Mock(return_value=self.mock_agent)
+        user.getRoles = Mock(return_value=['Authenticated'])
 
     def test_edit_form(self):
         """test_edit_form."""
@@ -348,6 +349,7 @@ class NotLoggedInTest(unittest.TestCase):
              'text_native': '', 'ldap': False}
         ])
         self.mock_agent.org_info = Mock(return_value=org_data_fixture)
+        user.getRoles = Mock(return_value=['Anonymous'])
 
     def _assert_error_msg_on_index(self):
         """_assert_error_msg_on_index."""
@@ -366,8 +368,10 @@ class NotLoggedInTest(unittest.TestCase):
                          "You must be authenticated to edit your profile. "
                          "Please log in.")
 
-    def test_edit_form(self):
+    @patch('eea.ldapadmin.nfp_nrc.get_nrc_roles')
+    def test_edit_form(self, mock_nrc_roles):
         """test_edit_form."""
+        mock_nrc_roles.return_value = []
         self.ui.edit_account_html(self.request)
         self.request.RESPONSE.redirect.assert_called_with('URL/')
         self._assert_error_msg_on_index()
@@ -402,6 +406,7 @@ class EditOrganisationTest(unittest.TestCase):
             'poker_club': {'name': 'Poker club',
                            'name_native': 'Poker club', 'country': 'eu'}}
         self.mock_agent.all_organisations = Mock(return_value=all_orgs)
+        user.getRoles = Mock(return_value=['Authenticated'])
 
     def test_show_by_id(self):
         """test_show_by_id."""

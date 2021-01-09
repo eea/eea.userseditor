@@ -30,6 +30,7 @@ from eea.ldapadmin import ldap_config
 from eea.ldapadmin.nfp_nrc import get_nfps_for_country, get_nrc_roles
 from eea.ldapadmin.roles_editor import role_members
 from eea.ldapadmin.logic_common import logged_in_user, _is_authenticated
+from eea.ldapadmin.ldap_config import _get_ldap_agent
 from eea.usersdb.db_agent import UserNotFound
 from .image_processor import scale_to
 
@@ -144,37 +145,6 @@ class DualLDAPProxy(object):
         return getattr(self._current_ldap, name)
 
 
-class CircaUsersDB(usersdb.UsersDB):
-    """CircaUsersDB."""
-
-    user_schema = CIRCA_USER_SCHEMA
-
-    def _user_dn(self, user_id):
-        """_user_dn.
-
-        :param user_id:
-        """
-        return super(CircaUsersDB, self)._user_dn('%s@circa' % user_id)
-
-    def _user_id(self, user_dn, attr={}):
-        """_user_id.
-
-        :param user_dn:
-        :param attr:
-        """
-        circa_user_id = super(CircaUsersDB, self)._user_id(user_dn)
-        assert '@' in circa_user_id
-
-        return circa_user_id.split('@')[0]
-
-    def _search_user_in_orgs(self, user_id):
-        """_search_user_in_orgs.
-
-        :param user_id:
-        """
-        return []
-
-
 class UsersEditor(SimpleItem, PropertyManager):
     """UsersEditor."""
 
@@ -224,19 +194,8 @@ class UsersEditor(SimpleItem, PropertyManager):
         REQUEST.RESPONSE.redirect(self.absolute_url() + '/manage_edit')
 
     def _get_ldap_agent(self, bind=True, secondary=False):
-        """_get_ldap_agent.
-
-        :param bind: bool signifying if the agent will authenticate on server
-        :param secondary: use secondary user credentials, different permission
-        """
-        agent = ldap_config.ldap_agent_with_config(self._config, bind,
-                                                   secondary=secondary)
-        try:
-            agent._author = logged_in_user(self.REQUEST)
-        except AttributeError:
-            agent._author = "System user"
-
-        return agent
+        """ get the ldap agent """
+        return _get_ldap_agent(self, bind, secondary)
 
     _zope2_wrapper = PageTemplateFile('zpt/zope2_wrapper.zpt', globals())
     _plone5_wrapper = PageTemplateFile('zpt/plone5_wrapper.zpt', globals())
@@ -282,7 +241,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         }
 
         if _is_authenticated(REQUEST):
-            agent = self._get_ldap_agent(bind=True)
+            agent = self._get_ldap_agent()
             user_id = logged_in_user(REQUEST)
             try:
                 user_info = agent.user_info(user_id)
@@ -327,12 +286,12 @@ class UsersEditor(SimpleItem, PropertyManager):
         if not _is_authenticated(REQUEST):
             return REQUEST.RESPONSE.redirect(self.absolute_url() + '/')
 
-        browser_agent = self._get_ldap_agent(bind=True)
+        browser_agent = self._get_ldap_agent(secondary=True)
         orgs = browser_agent.all_organisations()
         orgs = [{'id': k, 'text': v['name'], 'text_native': v['name_native'],
                  'ldap': True} for k, v in orgs.items()]
 
-        agent = self._get_ldap_agent(bind=True)
+        agent = self._get_ldap_agent()
         user_id = logged_in_user(REQUEST)
 
         if form_data is None:
@@ -422,7 +381,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         if REQUEST.method == 'GET':
             return self.edit_account_html(REQUEST)
 
-        agent = self._get_ldap_agent(bind=True)
+        agent = self._get_ldap_agent()
         user_id = logged_in_user(REQUEST)
 
         user_form = deform.Form(user_info_schema)
@@ -509,7 +468,7 @@ class UsersEditor(SimpleItem, PropertyManager):
 
             if ids:
                 obj = self.aq_parent[ids[0]]
-                org_agent = obj._get_ldap_agent(bind=True)
+                org_agent = obj._get_ldap_agent()
                 org_agent.add_to_org(org_id, [user_id])
             else:
                 raise
@@ -533,7 +492,7 @@ class UsersEditor(SimpleItem, PropertyManager):
 
                 if ids:
                     obj = self.aq_parent[ids[0]]
-                    org_agent = obj._get_ldap_agent(bind=True)
+                    org_agent = obj._get_ldap_agent()
                     try:
                         org_agent.remove_from_org(org_id, [user_id])
                     except ldap.NO_SUCH_ATTRIBUTE:    # user is not in org
@@ -592,7 +551,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         """ view """
         form = REQUEST.form
         user_id = logged_in_user(REQUEST)
-        agent = self._get_ldap_agent(bind=True)
+        agent = self._get_ldap_agent()
         user_info = agent.user_info(user_id)
 
         if form['new_password'] != form['new_password_confirm']:
@@ -681,7 +640,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         if not _is_authenticated(REQUEST):
             return REQUEST.RESPONSE.redirect(self.absolute_url() + '/')
         user_id = logged_in_user(REQUEST)
-        agent = self._get_ldap_agent(bind=True)
+        agent = self._get_ldap_agent()
 
         has_image = bool(agent.get_profile_picture(user_id))
 
@@ -705,7 +664,7 @@ class UsersEditor(SimpleItem, PropertyManager):
         if image_file:
             picture_data = image_file.read()
             user_id = logged_in_user(REQUEST)
-            agent = self._get_ldap_agent(bind=True)
+            agent = self._get_ldap_agent()
             try:
                 color = (255, 255, 255)
                 picture_data = scale_to(picture_data, WIDTH, HEIGHT, color)
@@ -736,7 +695,7 @@ class UsersEditor(SimpleItem, PropertyManager):
 
         """
         user_id = logged_in_user(REQUEST)
-        agent = self._get_ldap_agent(bind=True)
+        agent = self._get_ldap_agent()
         photo = agent.get_profile_picture(user_id)
         REQUEST.RESPONSE.setHeader('Content-Type', 'image/jpeg')
 
@@ -747,7 +706,7 @@ class UsersEditor(SimpleItem, PropertyManager):
     def remove_picture(self, REQUEST):
         """ Removes existing profile picture for loggedin user """
         user_id = logged_in_user(REQUEST)
-        agent = self._get_ldap_agent(bind=True)
+        agent = self._get_ldap_agent()
         msgs = IStatusMessage(REQUEST)
         try:
             agent.set_user_picture(user_id, None)

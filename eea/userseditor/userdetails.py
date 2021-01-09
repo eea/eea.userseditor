@@ -12,14 +12,15 @@ from AccessControl.Permissions import view_management_screens
 from Acquisition import Implicit
 from App.config import getConfiguration
 from eea.ldapadmin import ldap_config
-from eea.ldapadmin.logic_common import _is_authenticated, _get_ldap_agent
+from eea.ldapadmin.ldap_config import _get_ldap_agent
+from eea.ldapadmin.logic_common import _is_authenticated
 from eea.userseditor.permissions import EIONET_EDIT_USERS
+from eea.userseditor.users_editor import load_template
 from ldap import SCOPE_BASE
 from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
 from persistent.mapping import PersistentMapping
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
-from z3c.pt.pagetemplate import PageTemplateFile as ChameleonTemplate
 
 cfg = getConfiguration()
 if hasattr(cfg, 'environment'):
@@ -45,25 +46,6 @@ def manage_add_userdetails(parent, tool_id, REQUEST=None):
 
     if REQUEST is not None:
         REQUEST.RESPONSE.redirect(parent.absolute_url() + '/manage_workspace')
-
-
-def load_template(name, context=None, _memo={}):
-    """load_template.
-
-    :param name:
-    :param context:
-    :param _memo:
-    """
-    if name not in _memo:
-        tpl = ChameleonTemplate(name)
-
-        if context is not None:
-            bound = tpl.bind(context)
-            _memo[name] = bound
-        else:
-            _memo[name] = tpl
-
-    return _memo[name]
 
 
 zope2_wrapper = PageTemplateFile('zpt/zope2_wrapper.zpt', globals())
@@ -180,7 +162,7 @@ class CommonTemplateLogic(object):
             return True
 
         user = self.context.REQUEST.AUTHENTICATED_USER
-        agent = _get_ldap_agent(self.context)
+        agent = self.context._get_ldap_agent()
         user_roles = agent.member_roles_info('user', user.getId(), ('uid', ))
 
         for role in user_roles:
@@ -237,10 +219,14 @@ class UserDetails(SimpleItem):
         super(UserDetails, self).__init__()
         self._config = PersistentMapping(config)
 
+    def _get_ldap_agent(self, bind=True, secondary=False):
+        """ get the ldap agent """
+        return _get_ldap_agent(self, bind, secondary)
+
     def _prepare_user_page(self, uid):
         """Shared by index_html and simple_profile"""
         is_auth = _is_authenticated(self.REQUEST)
-        agent = _get_ldap_agent(self, bind=is_auth)
+        agent = self._get_ldap_agent(bind=is_auth)
         ldap_roles = sorted(agent.member_roles_info('user',
                                                     uid,
                                                     ('description',)))
@@ -316,7 +302,7 @@ class UserDetails(SimpleItem):
         :param REQUEST:
         """
         uid = REQUEST.form.get('uid')
-        agent = _get_ldap_agent(self)
+        agent = self._get_ldap_agent()
         REQUEST.RESPONSE.setHeader('Content-Type', 'image/jpeg')
 
         return agent.get_profile_picture(uid)
@@ -329,7 +315,7 @@ class UserDetails(SimpleItem):
         :param REQUEST:
         """
         uid = REQUEST.form.get('uid')
-        agent = _get_ldap_agent(self)
+        agent = self._get_ldap_agent()
         REQUEST.RESPONSE.setHeader('Content-Type', 'application/pkix-cert')
 
         return agent.get_certificate(uid)
@@ -343,6 +329,6 @@ class UserDetails(SimpleItem):
         if user_id is None:
             user_id = self.REQUEST.form.get('uid')
 
-        agent = _get_ldap_agent(self)
+        agent = self._get_ldap_agent()
 
         return agent.orgs_for_user(user_id)
