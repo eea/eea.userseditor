@@ -1,7 +1,7 @@
 Changelog
 =========
 
-2.5-dev0 - (unreleased)
+2.5 - (2021-01-09)
 ---------------------------
 * remove NFP edit permission on "own country" users [dumitval]
 * move _is_authenticated to eea.ldapadmin.logic_common [dumitval]
