@@ -102,8 +102,9 @@ class UserDetailsView(BrowserView):
         if user.get('status') == 'disabled':
             auth_user = REQUEST.AUTHENTICATED_USER
 
-            if not bool(auth_user.has_permission(EIONET_EDIT_USERS,
-                                                 self.context)):
+            if not bool(
+                auth_user.has_permission(EIONET_EDIT_USERS, self.context) or
+                    self.context.nfp_for_country()):
                 raise NotFound("User '%s' does not exist" % uid)
             # process log entries to list the roles the user had before
             # being disabled

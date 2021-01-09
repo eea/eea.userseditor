@@ -1,6 +1,17 @@
 Changelog
 =========
 
+2.5 - (2021-01-09)
+---------------------------
+* remove NFP edit permission on "own country" users [dumitval]
+* move _is_authenticated to eea.ldapadmin.logic_common [dumitval]
+* move _get_ldap_agent eea.ldapadmin.ldap_config [dumitval]
+* move logged_in_user, nfp_for_country to eea.ldapadmin.ui_common [dumitval]
+* removed _get_user_id duplicate of logged_in_user [dumitval]
+* give NFPs access to the details page of disabled users [dumitval]
+* remove obsolete Circa-related code [dumitval]
+* fix tests [dumitval]
+
 2.4 - (2020-12-04)
 ---------------------------
 * add some privileges for NFPs on the user details page

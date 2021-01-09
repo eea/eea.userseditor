@@ -12,14 +12,15 @@ from AccessControl.Permissions import view_management_screens
 from Acquisition import Implicit
 from App.config import getConfiguration
 from eea.ldapadmin import ldap_config
-from eea.ldapadmin.ui_common import nfp_for_country
+from eea.ldapadmin.ldap_config import _get_ldap_agent
+from eea.ldapadmin.logic_common import _is_authenticated
 from eea.userseditor.permissions import EIONET_EDIT_USERS
+from eea.userseditor.users_editor import load_template
 from ldap import SCOPE_BASE
 from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
 from persistent.mapping import PersistentMapping
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
-from z3c.pt.pagetemplate import PageTemplateFile as ChameleonTemplate
 
 cfg = getConfiguration()
 if hasattr(cfg, 'environment'):
@@ -45,33 +46,6 @@ def manage_add_userdetails(parent, tool_id, REQUEST=None):
 
     if REQUEST is not None:
         REQUEST.RESPONSE.redirect(parent.absolute_url() + '/manage_workspace')
-
-
-def _is_authenticated(request):
-    """_is_authenticated.
-
-    :param request:
-    """
-    return 'Authenticated' in request.AUTHENTICATED_USER.getRoles()
-
-
-def load_template(name, context=None, _memo={}):
-    """load_template.
-
-    :param name:
-    :param context:
-    :param _memo:
-    """
-    if name not in _memo:
-        tpl = ChameleonTemplate(name)
-
-        if context is not None:
-            bound = tpl.bind(context)
-            _memo[name] = bound
-        else:
-            _memo[name] = tpl
-
-    return _memo[name]
 
 
 zope2_wrapper = PageTemplateFile('zpt/zope2_wrapper.zpt', globals())
@@ -179,22 +153,6 @@ class CommonTemplateLogic(object):
 
         return bool(user.has_permission(EIONET_EDIT_USERS, self.context))
 
-    def can_edit_user(self):
-        """ Check if the authenticated user has permission to edit this
-        particular user. (meaning has general edit permission or
-        the authenticated user is NFP in the country of the user's
-        organisation)."""
-        if self.can_edit_users():
-            return True
-        uid = self.context.REQUEST.AUTHENTICATED_USER.getId()
-        nfp_country = nfp_for_country(self.context)
-        if nfp_country:
-            agent = self.context._get_ldap_agent()
-            for org in agent.orgs_for_user(uid):
-                if agent.org_info(org[0])['country'] == nfp_country:
-                    return True
-        return False
-
     def can_view_roles(self):
         """can_view_roles."""
         if not self.is_authenticated():
@@ -221,22 +179,6 @@ class CommonTemplateLogic(object):
         """ E.g. EIONET, SINAnet etc. """
 
         return NETWORK_NAME
-
-
-def logged_in_user(request):
-    """logged_in_user.
-
-    :param request:
-    """
-    user_id = ''
-
-    if _is_authenticated(request):
-        user = request.get('AUTHENTICATED_USER', '')
-
-        if user:
-            user_id = user.getId()
-
-    return user_id
 
 
 class UserDetails(SimpleItem):
@@ -278,20 +220,8 @@ class UserDetails(SimpleItem):
         self._config = PersistentMapping(config)
 
     def _get_ldap_agent(self, bind=True, secondary=False):
-        """_get_ldap_agent.
-
-        :param bind:
-        :param secondary: bind with alternate credentials for different
-                          permissions
-        """
-        agent = ldap_config.ldap_agent_with_config(self._config, bind,
-                                                   secondary=secondary)
-        try:
-            agent._author = logged_in_user(self.REQUEST)
-        except AttributeError:
-            agent._author = "System user"
-
-        return agent
+        """ get the ldap agent """
+        return _get_ldap_agent(self, bind, secondary)
 
     def _prepare_user_page(self, uid):
         """Shared by index_html and simple_profile"""

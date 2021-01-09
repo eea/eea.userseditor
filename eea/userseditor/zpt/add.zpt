@@ -4,7 +4,7 @@
 
 <form action="manage_addUsersEditor" method="post">
     <label for="id">Id:</label>
-    <input id="id" type="text" name="id" size="50" value="profile"/>
+    <input id="tool_id" type="text" name="tool_id" size="50" value="profile"/>
     <br/>
 
     <label for="title">Title:</label>
