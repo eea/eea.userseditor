@@ -18,11 +18,15 @@ class UserDetailsView(BrowserView):
     def __call__(self):
         REQUEST = self.request
         uid = REQUEST.form.get('uid')
+        auth_user = REQUEST.AUTHENTICATED_USER
+        is_auth = ('Authenticated' in auth_user.getRoles())
 
         if not uid:
-            # a missing uid can only mean this page is called by accident
-
-            return
+            if is_auth:
+                uid = auth_user.getId()
+            else:
+                # a missing uid can only mean this page is called by accident
+                return
         date_for_roles = REQUEST.form.get('date_for_roles')
 
         if "," in uid:
@@ -33,7 +37,6 @@ class UserDetailsView(BrowserView):
             multi = None
             user, roles = self.context._prepare_user_page(uid)
 
-        is_auth = ('Authenticated' in REQUEST.AUTHENTICATED_USER.getRoles())
         # we can only connect to ldap with bind=True if we have an
         # authenticated user
         agent = self.context._get_ldap_agent(bind=is_auth)

@@ -14,6 +14,7 @@ from App.config import getConfiguration
 from eea.ldapadmin import ldap_config
 from eea.ldapadmin.ldap_config import _get_ldap_agent
 from eea.ldapadmin.logic_common import _is_authenticated
+from eea.ldapadmin.ui_common import nfp_can_change_user
 from eea.userseditor.permissions import EIONET_EDIT_USERS
 from eea.userseditor.users_editor import load_template
 from ldap import SCOPE_BASE
@@ -152,6 +153,14 @@ class CommonTemplateLogic(object):
         user = self.context.REQUEST.AUTHENTICATED_USER
 
         return bool(user.has_permission(EIONET_EDIT_USERS, self.context))
+
+    def can_edit_user(self, uid):
+        """ check the the authenticated user can edit a specific user
+        This can mean he has the edit users permission or is an NFP and the
+        target user is member of an organisation from the NFP's country """
+        user = self.context.REQUEST.AUTHENTICATED_USER
+        return (user.has_permission(EIONET_EDIT_USERS, self.context) or
+                nfp_can_change_user(self, uid, no_org=False))
 
     def can_view_roles(self):
         """can_view_roles."""

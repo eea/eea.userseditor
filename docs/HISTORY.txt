@@ -3,6 +3,8 @@ Changelog
 
 2.6-dev0 - (unreleased)
 ---------------------------
+* remove dependency on validate_email [dumitval]
+* re-allow NFPs to edit users from orgs of their country [dumitval]
 
 2.5 - (2021-01-09)
 ---------------------------
