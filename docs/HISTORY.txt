@@ -1,6 +1,11 @@
 Changelog
 =========
 
+2.6 - (2021-04-09)
+---------------------------
+* remove dependency on validate_email [dumitval]
+* re-allow NFPs to edit users from orgs of their country [dumitval]
+
 2.5 - (2021-01-09)
 ---------------------------
 * remove NFP edit permission on "own country" users [dumitval]

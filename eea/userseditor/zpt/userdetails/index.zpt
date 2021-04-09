@@ -85,14 +85,16 @@
           <div xmlns:foaf="http://xmlns.com/foaf/0.1/"
             tal:attributes="about string:${common/portal_url}/users/${view/user/uid}" typeof="foaf:Person"
             tal:define="user view/user;
+            uid user/uid;
             disabled python:user.get('status') == 'disabled';
             can_view_roles common/can_view_roles;
+            can_edit_user python:common.can_edit_user(uid);
             can_edit_users common/can_edit_users;
             is_authenticated common/is_authenticated;">
 
             <h1 property="foaf:name">
               <tal:block content="user/full_name" />
-              <a tal:condition="can_edit_users"
+              <a tal:condition="can_edit_user"
                 style="background:none"
                 tal:attributes="href string:${common/portal_url}/eionet-account-tools/eionet_account_tools/users/edit_user?id=${user/uid}">
                 <img src="/++resource++eea.userseditor-www/edit.gif" alt="Edit" />
@@ -102,7 +104,7 @@
             <div class="figure figure-right" style="clear: both"
               tal:condition="python:user['jpegPhoto'] and (not disabled or can_edit_users)">
               <div class="figure-image">
-                <a tal:attributes="href string:userphoto_jpeg?uid=${user/uid}">
+                <a>
                   <img tal:attributes="src string:${common/base_url}/userphoto_jpeg?uid=${user/uid}" class="mouseclickpop"
                     alt="photo of person" style="max-width:200px; max-height:150px" />
                 </a>
