@@ -16,7 +16,7 @@ from ldap import (CONSTRAINT_VIOLATION, INSUFFICIENT_ACCESS, NO_SUCH_OBJECT,
                   SCOPE_BASE)
 from AccessControl import ClassSecurityInfo
 from AccessControl.Permissions import view, view_management_screens
-from App.class_init import InitializeClass
+from AccessControl.class_init import InitializeClass
 from App.config import getConfiguration
 from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
@@ -259,15 +259,16 @@ class UsersEditor(SimpleItem, PropertyManager):
                     pwdChangedTime = datetime.strptime(pwdChangedTime,
                                                        '%Y%m%d%H%M%SZ')
                     user_info['pwdChanged'] = pwdChangedTime.strftime(
-                        '%d %b %Y, %H:%m')
+                        '%d %b %Y, %H:%M')
                     user_info['pwdExpire'] = (
                         pwdChangedTime + timedelta(days=pwdMaxAge)).strftime(
-                        '%d %b %Y, %H:%m')
+                        '%d %b %Y, %H:%M')
 
                     user_info['pwdExpired'] = datetime.now() - timedelta(
                         days=pwdMaxAge) > pwdChangedTime
                 else:
                     user_info['pwdChanged'] = ''
+                    user_info['pwdExpire'] = ''
                     user_info['pwdExpired'] = True
 
                 options['user_info'] = user_info
@@ -387,10 +388,11 @@ class UsersEditor(SimpleItem, PropertyManager):
         user_form = deform.Form(user_info_schema)
 
         try:
+            # user_info returns '' for a missing attribute, so .get() alone
+            # never falls back for accounts that predate reasonToCreate
             new_info = {'reasonToCreate':
-                        agent.user_info(user_id).get(
-                            'reasonToCreate',
-                            'Account created before this field was introduced')
+                        agent.user_info(user_id).get('reasonToCreate') or
+                        'Account created before this field was introduced'
                         }
             new_info.update(REQUEST.form)
             new_info = user_form.validate(list(new_info.items()))
@@ -452,7 +454,8 @@ class UsersEditor(SimpleItem, PropertyManager):
             IStatusMessage(REQUEST).add("Profile saved (%s)" % when,
                                         type='info')
 
-        REQUEST.RESPONSE.redirect(self.absolute_url() + '/edit_account_html')
+        return REQUEST.RESPONSE.redirect(self.absolute_url() +
+                                         '/edit_account_html')
 
     def _add_to_org(self, agent, org_id, user_id):
         """_add_to_org.
@@ -617,8 +620,8 @@ class UsersEditor(SimpleItem, PropertyManager):
             return REQUEST.RESPONSE.redirect(self.absolute_url() +
                                              '/change_password_html')
 
-        REQUEST.RESPONSE.redirect(self.absolute_url() +
-                                  '/password_changed_html')
+        return REQUEST.RESPONSE.redirect(self.absolute_url() +
+                                         '/password_changed_html')
 
     security.declareProtected(view, 'password_changed_html')
 

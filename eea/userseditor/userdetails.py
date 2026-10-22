@@ -178,6 +178,8 @@ class CommonTemplateLogic(object):
             if role[0] in ['eea', 'eionet']:
                 return True
 
+        return False
+
     @property
     def macros(self):
         """macros."""
