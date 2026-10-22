@@ -22,13 +22,12 @@ setup(name=NAME,
       zip_safe=False,
       install_requires=[
           'eea.usersdb>=2.6',
+          'eea.ldapadmin>=4.5',
           'deform',
           'phonenumbers',
           'six'
       ],
       extras_require={
-          'test': [
-              'eea.ldapadmin>=2.8',
-          ],
+          'test': [],
       },
       )
