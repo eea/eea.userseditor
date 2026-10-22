@@ -9,6 +9,12 @@ Changelog
 * Bug fix: register index_html as the default view of User Details, so
   /directory/user?uid= renders the user page on Zope 5
   [nileshgulia1]
+* Bug fix: profile editor no longer crashes for accounts without
+  pwdChangedTime, and shows minutes (not the month) in password dates
+  [nileshgulia1]
+* Bug fix: accounts without reasonToCreate can save their profile again
+  (the fallback value was never used)
+  [nileshgulia1]
 
 2.6 - (2021-04-09)
 ---------------------------

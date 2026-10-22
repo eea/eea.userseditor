@@ -259,15 +259,16 @@ class UsersEditor(SimpleItem, PropertyManager):
                     pwdChangedTime = datetime.strptime(pwdChangedTime,
                                                        '%Y%m%d%H%M%SZ')
                     user_info['pwdChanged'] = pwdChangedTime.strftime(
-                        '%d %b %Y, %H:%m')
+                        '%d %b %Y, %H:%M')
                     user_info['pwdExpire'] = (
                         pwdChangedTime + timedelta(days=pwdMaxAge)).strftime(
-                        '%d %b %Y, %H:%m')
+                        '%d %b %Y, %H:%M')
 
                     user_info['pwdExpired'] = datetime.now() - timedelta(
                         days=pwdMaxAge) > pwdChangedTime
                 else:
                     user_info['pwdChanged'] = ''
+                    user_info['pwdExpire'] = ''
                     user_info['pwdExpired'] = True
 
                 options['user_info'] = user_info
@@ -387,10 +388,11 @@ class UsersEditor(SimpleItem, PropertyManager):
         user_form = deform.Form(user_info_schema)
 
         try:
+            # user_info returns '' for a missing attribute, so .get() alone
+            # never falls back for accounts that predate reasonToCreate
             new_info = {'reasonToCreate':
-                        agent.user_info(user_id).get(
-                            'reasonToCreate',
-                            'Account created before this field was introduced')
+                        agent.user_info(user_id).get('reasonToCreate') or
+                        'Account created before this field was introduced'
                         }
             new_info.update(REQUEST.form)
             new_info = user_form.validate(list(new_info.items()))
