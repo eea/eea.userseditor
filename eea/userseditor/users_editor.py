@@ -452,7 +452,8 @@ class UsersEditor(SimpleItem, PropertyManager):
             IStatusMessage(REQUEST).add("Profile saved (%s)" % when,
                                         type='info')
 
-        REQUEST.RESPONSE.redirect(self.absolute_url() + '/edit_account_html')
+        return REQUEST.RESPONSE.redirect(self.absolute_url() +
+                                         '/edit_account_html')
 
     def _add_to_org(self, agent, org_id, user_id):
         """_add_to_org.
@@ -617,8 +618,8 @@ class UsersEditor(SimpleItem, PropertyManager):
             return REQUEST.RESPONSE.redirect(self.absolute_url() +
                                              '/change_password_html')
 
-        REQUEST.RESPONSE.redirect(self.absolute_url() +
-                                  '/password_changed_html')
+        return REQUEST.RESPONSE.redirect(self.absolute_url() +
+                                         '/password_changed_html')
 
     security.declareProtected(view, 'password_changed_html')
 
