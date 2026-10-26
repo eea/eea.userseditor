@@ -672,7 +672,8 @@ class UsersEditor(SimpleItem, PropertyManager):
                 color = (255, 255, 255)
                 picture_data = scale_to(picture_data, WIDTH, HEIGHT, color)
                 success = agent.set_user_picture(user_id, picture_data)
-            except ValueError:
+            except (ValueError, OSError):
+                # OSError covers PIL.UnidentifiedImageError (not an image)
                 msgs.add("Error updating picture", type='error')
 
                 return REQUEST.RESPONSE.redirect(self.absolute_url() +

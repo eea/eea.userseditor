@@ -15,6 +15,10 @@ Changelog
 * Bug fix: accounts without reasonToCreate can save their profile again
   (the fallback value was never used)
   [nileshgulia1]
+* Bug fix: profile picture upload works with Pillow 10+ (Image.ANTIALIAS
+  was removed; use Image.LANCZOS), and a non-image file shows "Error
+  updating picture" instead of a server error
+  [nileshgulia1]
 
 2.6 - (2021-04-09)
 ---------------------------
