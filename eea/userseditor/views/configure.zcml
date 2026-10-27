@@ -10,6 +10,12 @@
     template="../zpt/userdetails/index.zpt"
     />
 
+  <!-- Zope 5 no longer picks the index_html view by itself for /user?uid= -->
+  <browser:defaultView
+    for="eea.userseditor.userdetails.UserDetails"
+    name="index_html"
+    />
+
   <browser:page
     name="details_ENABLE_ACCOUNT"
     for="*"

@@ -34,7 +34,8 @@ def scale_to(filedata, width, height, fill_color):
     im = Image.open(imfile)
     im.load()
     photo_size = scaled_size(im, width, height)
-    im = im.resize(photo_size, Image.ANTIALIAS)
+    # Image.ANTIALIAS was removed in Pillow 10; LANCZOS is the same filter
+    im = im.resize(photo_size, Image.LANCZOS)
 
     final_im = Image.new("RGB", (width, height), fill_color)
     paste_pos = ((width - photo_size[0]) // 2, (height - photo_size[1]) // 2)
