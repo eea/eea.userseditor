@@ -22,7 +22,7 @@ setup(name=NAME,
       zip_safe=False,
       install_requires=[
           'eea.usersdb>=2.6',
-          'eea.ldapadmin>=4.5',
+          'eea.ldapadmin>=5.0',
           'deform',
           'phonenumbers',
           'six'
