@@ -26,7 +26,7 @@ class UserDetailsView(BrowserView):
                 uid = auth_user.getId()
             else:
                 # a missing uid can only mean this page is called by accident
-                return
+                return None
         date_for_roles = REQUEST.form.get('date_for_roles')
 
         if "," in uid:
