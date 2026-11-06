@@ -96,7 +96,7 @@
               <tal:block content="user/full_name" />
               <a tal:condition="can_edit_user"
                 style="background:none"
-                tal:attributes="href string:${common/portal_url}/eionet-account-tools/eionet_account_tools/users/edit_user?id=${user/uid}">
+                tal:attributes="href string:${common/users_admin_url}/edit_user?id=${user/uid}">
                 <img src="/++resource++eea.userseditor-www/edit.gif" alt="Edit" />
               </a>
             </h1>
@@ -132,7 +132,7 @@
                 <td>
                   <tal:block condition="python:user['organisation_title'] and can_edit_users">
                     <a tal:content="user/organisation_title"
-                      tal:attributes="href string:${common/portal_url}/eionet-account-tools/eionet_account_tools/organisations/organisation?id=${user/organisation}" />
+                      tal:attributes="href string:${common/organisations_url}/organisation?id=${user/organisation}" />
                     <tal:block content="string:(${user/organisation})" />
                   </tal:block>
                   <tal:block condition="python:user['organisation_title'] and not can_edit_users"
