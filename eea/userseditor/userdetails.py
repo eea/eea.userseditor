@@ -12,6 +12,7 @@ from AccessControl.Permissions import view_management_screens
 from Acquisition import Implicit
 from App.config import getConfiguration
 from eea.ldapadmin import ldap_config
+from eea.ldapadmin import tool_urls
 from eea.ldapadmin.ldap_config import _get_ldap_agent
 from eea.ldapadmin.logic_common import _is_authenticated
 from eea.ldapadmin.ui_common import nfp_can_change_user
@@ -143,6 +144,14 @@ class CommonTemplateLogic(object):
     def portal_url(self):
         """base_url."""
         return self.context.portal_url()
+
+    def users_admin_url(self):
+        """URL of the users admin tool."""
+        return tool_urls.tool_url(self.context, tool_urls.USERS_ADMIN)
+
+    def organisations_url(self):
+        """URL of the organisations editor."""
+        return tool_urls.tool_url(self.context, tool_urls.ORGS_EDITOR)
 
     def is_authenticated(self):
         """is_authenticated."""

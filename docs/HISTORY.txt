@@ -3,6 +3,11 @@ Changelog
 
 3.1-dev0 - (unreleased)
 ---------------------------
+* Bug fix: fix adding a User Details object from the ZMI failing
+  [dumitval]
+* Change: edit and organisation links on the user details page found by
+  meta type, not hard-coded paths
+  [dumitval]
 
 3.0 - (2026-10-27)
 ---------------------------
