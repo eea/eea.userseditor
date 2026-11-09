@@ -1,6 +1,9 @@
 Changelog
 =========
 
+3.3-dev0 - (unreleased)
+---------------------------
+
 3.2 - (2026-11-09)
 ---------------------------
 * Bug fix: fix the user details page failing for users not in LDAP
