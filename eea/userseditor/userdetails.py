@@ -260,7 +260,7 @@ class UserDetails(SimpleItem):
         try:
             user = agent.user_info(uid)
         except UserNotFound:
-            # also a Zope user, who is not in LDAP, opening the page without uid
+            # also a Zope user (not in LDAP) opening the page without uid
             raise NotFound("User '%s' does not exist" % uid)
         user['jpegPhoto'] = agent.get_profile_picture(uid)
         user['certificate'] = agent.get_certificate(uid)
