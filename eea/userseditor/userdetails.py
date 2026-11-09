@@ -16,6 +16,7 @@ from eea.ldapadmin import tool_urls
 from eea.ldapadmin.ldap_config import _get_ldap_agent
 from eea.ldapadmin.logic_common import _is_authenticated
 from eea.ldapadmin.ui_common import nfp_can_change_user
+from eea.usersdb.db_agent import UserNotFound
 from eea.userseditor.permissions import EIONET_EDIT_USERS
 from eea.userseditor.users_editor import load_template
 from ldap import SCOPE_BASE
@@ -23,6 +24,7 @@ from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
 from persistent.mapping import PersistentMapping
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
+from zExceptions import NotFound
 
 cfg = getConfiguration()
 if hasattr(cfg, 'environment'):
@@ -255,7 +257,11 @@ class UserDetails(SimpleItem):
         for (role_id, attrs) in ldap_roles:
             roles.append((role_id,
                           attrs.get('description', (b'', ))[0].decode('utf8')))
-        user = agent.user_info(uid)
+        try:
+            user = agent.user_info(uid)
+        except UserNotFound:
+            # also a Zope user (not in LDAP) opening the page without uid
+            raise NotFound("User '%s' does not exist" % uid)
         user['jpegPhoto'] = agent.get_profile_picture(uid)
         user['certificate'] = agent.get_certificate(uid)
 

@@ -79,23 +79,13 @@ class UserDetailsView(BrowserView):
 
         output = []
 
+        # one row per operation: same action and same action_id
         for entry in log_entries:
-            if output:
-                last_entry = output[-1]
-                check = ['author', 'action']
-                flag = True
-
-                for k in check:
-                    if last_entry[k] != entry[k]:
-                        flag = False
-
-                        break
-
-                if flag:
-                    last_entry['data'].append(entry['data'])
-                else:
-                    entry['data'] = [entry['data']]
-                    output.append(entry)
+            last_entry = output[-1] if output else None
+            if (last_entry and entry.get('action_id') and
+                    last_entry['action'] == entry['action'] and
+                    last_entry.get('action_id') == entry['action_id']):
+                last_entry['data'].append(entry['data'])
             else:
                 entry['data'] = [entry['data']]
                 output.append(entry)
